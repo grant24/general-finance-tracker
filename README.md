@@ -1,3 +1,7 @@
+# general-finance-tracker
+A general finance tracker to help keep track of your income &amp; debt, and to build a plan to tackle your financial goals.
+
+
 <div align="center">
   <img src="https://github.com/user-attachments/assets/f9729f43-485a-44d4-b85d-f93dc5c09988" alt="image" height="180"/>
 </div>
