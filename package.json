@@ -17,6 +17,11 @@
     "dev:client": "npm run dev -w client",
     "dev:server": "npm run dev -w server",
     "dev": "run-p dev:*",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "format:client": "prettier --write ./client",
+    "format:server": "prettier --write ./server",
+    "format:packages": "prettier --write ./packages",
     "push": "npm run push -w packages/drizzle",
     "seed": "npm run seed -w packages/drizzle",
     "start:client": "npm run start -w client",
@@ -26,10 +31,13 @@
     "clean": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name 'package-lock.json' -type f -delete && find . -name 'yarn.lock ' -type f -delete && find . -name 'dist' -type d -prune -exec rm -rf '{}' +"
   },
   "dependencies": {
-    "npm-run-all": "^4.1.5",
-    "drizzle-orm": "^0.41.0"
+    "drizzle-orm": "^0.41.0",
+    "npm-run-all": "^4.1.5"
   },
   "devDependencies": {
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
     "wait-port": "^1.1.0"
   }
 }

@@ -1,6 +1,6 @@
 # general-finance-tracker
-A general finance tracker to help keep track of your income &amp; debt, and to build a plan to tackle your financial goals.
 
+A general finance tracker to help keep track of your income &amp; debt, and to build a plan to tackle your financial goals.
 
 <div align="center">
   <img src="https://github.com/user-attachments/assets/f9729f43-485a-44d4-b85d-f93dc5c09988" alt="image" height="180"/>
@@ -91,6 +91,113 @@ npm run seed
 
 // Run the app (it will run the client and the server automatically)
 npm run dev
+```
+
+## Available Commands
+
+### Development Commands
+
+```bash
+# Start development servers (client + server)
+npm run dev
+
+# Start only client development server
+npm run dev:client
+
+# Start only server development server
+npm run dev:server
+```
+
+### Build Commands
+
+```bash
+# Build entire application (frontend + backend)
+npm run build:frontend
+
+# Build only backend (drizzle + zod + server)
+npm run build:backend
+
+# Build only client
+npm run build:client
+
+# Build individual packages
+npm run build:drizzle
+npm run build:zod
+npm run build:server
+```
+
+### Production Commands
+
+```bash
+# Start production servers (client + server)
+npm run start
+
+# Start only client production server
+npm run start:client
+
+# Start only server production server
+npm run start:server
+```
+
+### Database Commands
+
+```bash
+# Push database schema changes
+npm run push
+
+# Seed database with initial data
+npm run seed
+```
+
+### Code Formatting Commands
+
+```bash
+# Format all files in the project
+npm run format
+
+# Check formatting without making changes
+npm run format:check
+
+# Format specific workspaces
+npm run format:client
+npm run format:server
+npm run format:packages
+```
+
+### Testing Commands
+
+```bash
+# Run end-to-end tests (requires app to be running)
+npm run test
+```
+
+### Utility Commands
+
+```bash
+# Clean all node_modules, lock files, and build outputs
+npm run clean
+```
+
+### Additional Useful Commands
+
+```bash
+# Install dependencies in all workspaces
+npm install
+
+# Install dependency in specific workspace
+npm install <package> -w client
+npm install <package> -w server
+npm install <package> -w packages/drizzle
+npm install <package> -w packages/zod
+
+# Run script in specific workspace
+npm run <script> -w <workspace>
+
+# Check npm workspace info
+npm run env -ws
+
+# List all workspaces
+npm run --workspaces --include-workspace-root --if-present
 ```
 
 ## Building for production

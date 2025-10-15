@@ -1,64 +1,64 @@
-import { adminProcedure, protectedProcedure, publicProcedure, router } from "../trpc"
-import { z } from "zod"
-import { sessionTable } from "@fsb/drizzle"
-import { drizzleOrm } from "@fsb/drizzle"
-import { auth } from "../lib/auth"
+import { adminProcedure, protectedProcedure, publicProcedure, router } from '../trpc'
+import { z } from 'zod'
+import { sessionTable } from '@fsb/drizzle'
+import { drizzleOrm } from '@fsb/drizzle'
+import { auth } from '../lib/auth'
 const { count, eq } = drizzleOrm
 
 const sessionRouter = router({
   login: publicProcedure.input(z.object({ email: z.string(), password: z.string() })).mutation(async (opts) => {
-    console.log("login", opts.input)
+    console.log('login', opts.input)
     const response = await auth.api.signInEmail({
       body: {
         email: opts.input.email,
-        password: opts.input.password,
+        password: opts.input.password
       },
-      asResponse: true, // returns a response object instead of data
+      asResponse: true // returns a response object instead of data
     })
-    console.log("response", response)
+    console.log('response', response)
 
     // Set the cookie from the response headers
-    const setCookieHeader = response.headers.get("set-cookie")
+    const setCookieHeader = response.headers.get('set-cookie')
     if (setCookieHeader) {
-      opts.ctx.res.header("Set-Cookie", setCookieHeader)
+      opts.ctx.res.header('Set-Cookie', setCookieHeader)
     }
 
     // Extract user agent and IP address from request headers
-    const userAgent = Array.isArray(opts.ctx.req.headers["user-agent"])
-      ? opts.ctx.req.headers["user-agent"][0]
-      : opts.ctx.req.headers["user-agent"] || ""
+    const userAgent = Array.isArray(opts.ctx.req.headers['user-agent'])
+      ? opts.ctx.req.headers['user-agent'][0]
+      : opts.ctx.req.headers['user-agent'] || ''
 
     const ipAddress =
-      (Array.isArray(opts.ctx.req.headers["x-forwarded-for"])
-        ? opts.ctx.req.headers["x-forwarded-for"][0]
-        : opts.ctx.req.headers["x-forwarded-for"]
+      (Array.isArray(opts.ctx.req.headers['x-forwarded-for'])
+        ? opts.ctx.req.headers['x-forwarded-for'][0]
+        : opts.ctx.req.headers['x-forwarded-for']
       )
-        ?.split(",")[0]
+        ?.split(',')[0]
         ?.trim() ||
-      (Array.isArray(opts.ctx.req.headers["x-real-ip"])
-        ? opts.ctx.req.headers["x-real-ip"][0]
-        : opts.ctx.req.headers["x-real-ip"]) ||
-      (Array.isArray(opts.ctx.req.headers["cf-connecting-ip"])
-        ? opts.ctx.req.headers["cf-connecting-ip"][0]
-        : opts.ctx.req.headers["cf-connecting-ip"]) ||
-      (Array.isArray(opts.ctx.req.headers["x-client-ip"])
-        ? opts.ctx.req.headers["x-client-ip"][0]
-        : opts.ctx.req.headers["x-client-ip"]) ||
-      ""
+      (Array.isArray(opts.ctx.req.headers['x-real-ip'])
+        ? opts.ctx.req.headers['x-real-ip'][0]
+        : opts.ctx.req.headers['x-real-ip']) ||
+      (Array.isArray(opts.ctx.req.headers['cf-connecting-ip'])
+        ? opts.ctx.req.headers['cf-connecting-ip'][0]
+        : opts.ctx.req.headers['cf-connecting-ip']) ||
+      (Array.isArray(opts.ctx.req.headers['x-client-ip'])
+        ? opts.ctx.req.headers['x-client-ip'][0]
+        : opts.ctx.req.headers['x-client-ip']) ||
+      ''
 
-    console.log("Login userAgent:", userAgent)
-    console.log("Login ipAddress:", ipAddress)
+    console.log('Login userAgent:', userAgent)
+    console.log('Login ipAddress:', ipAddress)
 
     // Update the session with user agent and IP address if we have session data
     try {
       // Convert Fastify headers to standard Headers object
       const headers = new Headers()
       Object.entries(opts.ctx.req.headers).forEach(([key, value]) => {
-        if (value) headers.append(key, Array.isArray(value) ? value.join(", ") : value)
+        if (value) headers.append(key, Array.isArray(value) ? value.join(', ') : value)
       })
 
       const sessionData = await auth.api.getSession({
-        headers,
+        headers
       })
 
       if (sessionData?.session?.id) {
@@ -66,14 +66,14 @@ const sessionRouter = router({
           .update(sessionTable)
           .set({
             userAgent: userAgent,
-            ipAddress: ipAddress,
+            ipAddress: ipAddress
           })
           .where(eq(sessionTable.id, sessionData.session.id))
 
-        console.log("Updated session with userAgent and ipAddress")
+        console.log('Updated session with userAgent and ipAddress')
       }
     } catch (error) {
-      console.log("Error updating session:", error)
+      console.log('Error updating session:', error)
     }
 
     return true
@@ -81,58 +81,58 @@ const sessionRouter = router({
   signup: publicProcedure
     .input(z.object({ email: z.string(), password: z.string(), name: z.string() }))
     .mutation(async (opts) => {
-      console.log("signup", opts.input)
+      console.log('signup', opts.input)
       const response = await auth.api.signUpEmail({
         body: {
           email: opts.input.email,
           password: opts.input.password,
-          name: opts.input.name,
+          name: opts.input.name
         },
-        asResponse: true,
+        asResponse: true
       })
-      console.log("response", response)
+      console.log('response', response)
       // Set the cookie from the response headers
-      const setCookieHeader = response.headers.get("set-cookie")
+      const setCookieHeader = response.headers.get('set-cookie')
       if (setCookieHeader) {
-        opts.ctx.res.header("Set-Cookie", setCookieHeader)
+        opts.ctx.res.header('Set-Cookie', setCookieHeader)
       }
 
       // Extract user agent and IP address from request headers
-      const userAgent = Array.isArray(opts.ctx.req.headers["user-agent"])
-        ? opts.ctx.req.headers["user-agent"][0]
-        : opts.ctx.req.headers["user-agent"] || ""
+      const userAgent = Array.isArray(opts.ctx.req.headers['user-agent'])
+        ? opts.ctx.req.headers['user-agent'][0]
+        : opts.ctx.req.headers['user-agent'] || ''
 
       const ipAddress =
-        (Array.isArray(opts.ctx.req.headers["x-forwarded-for"])
-          ? opts.ctx.req.headers["x-forwarded-for"][0]
-          : opts.ctx.req.headers["x-forwarded-for"]
+        (Array.isArray(opts.ctx.req.headers['x-forwarded-for'])
+          ? opts.ctx.req.headers['x-forwarded-for'][0]
+          : opts.ctx.req.headers['x-forwarded-for']
         )
-          ?.split(",")[0]
+          ?.split(',')[0]
           ?.trim() ||
-        (Array.isArray(opts.ctx.req.headers["x-real-ip"])
-          ? opts.ctx.req.headers["x-real-ip"][0]
-          : opts.ctx.req.headers["x-real-ip"]) ||
-        (Array.isArray(opts.ctx.req.headers["cf-connecting-ip"])
-          ? opts.ctx.req.headers["cf-connecting-ip"][0]
-          : opts.ctx.req.headers["cf-connecting-ip"]) ||
-        (Array.isArray(opts.ctx.req.headers["x-client-ip"])
-          ? opts.ctx.req.headers["x-client-ip"][0]
-          : opts.ctx.req.headers["x-client-ip"]) ||
-        ""
+        (Array.isArray(opts.ctx.req.headers['x-real-ip'])
+          ? opts.ctx.req.headers['x-real-ip'][0]
+          : opts.ctx.req.headers['x-real-ip']) ||
+        (Array.isArray(opts.ctx.req.headers['cf-connecting-ip'])
+          ? opts.ctx.req.headers['cf-connecting-ip'][0]
+          : opts.ctx.req.headers['cf-connecting-ip']) ||
+        (Array.isArray(opts.ctx.req.headers['x-client-ip'])
+          ? opts.ctx.req.headers['x-client-ip'][0]
+          : opts.ctx.req.headers['x-client-ip']) ||
+        ''
 
-      console.log("Signup userAgent:", userAgent)
-      console.log("Signup ipAddress:", ipAddress)
+      console.log('Signup userAgent:', userAgent)
+      console.log('Signup ipAddress:', ipAddress)
 
       // Update the session with user agent and IP address if we have session data
       try {
         // Convert Fastify headers to standard Headers object
         const headers = new Headers()
         Object.entries(opts.ctx.req.headers).forEach(([key, value]) => {
-          if (value) headers.append(key, Array.isArray(value) ? value.join(", ") : value)
+          if (value) headers.append(key, Array.isArray(value) ? value.join(', ') : value)
         })
 
         const sessionData = await auth.api.getSession({
-          headers,
+          headers
         })
 
         if (sessionData?.session?.id) {
@@ -140,14 +140,14 @@ const sessionRouter = router({
             .update(sessionTable)
             .set({
               userAgent: userAgent,
-              ipAddress: ipAddress,
+              ipAddress: ipAddress
             })
             .where(eq(sessionTable.id, sessionData.session.id))
 
-          console.log("Updated signup session with userAgent and ipAddress")
+          console.log('Updated signup session with userAgent and ipAddress')
         }
       } catch (error) {
-        console.log("Error updating signup session:", error)
+        console.log('Error updating signup session:', error)
       }
 
       return true
@@ -156,7 +156,7 @@ const sessionRouter = router({
   deleteSession: adminProcedure
     .input(
       z.object({
-        sessionId: z.string(),
+        sessionId: z.string()
       })
     )
     .mutation(async (opts) => {
@@ -171,7 +171,7 @@ const sessionRouter = router({
       z.object({
         page: z.number(),
         search: z.string().optional(),
-        userId: z.string().optional(),
+        userId: z.string().optional()
       })
     )
     .query(async (opts) => {
@@ -182,18 +182,23 @@ const sessionRouter = router({
         limit,
         offset: (page - 1) * limit,
 
-        columns: { id: true, createdAt: true, userAgent: true, ipAddress: true },
+        columns: {
+          id: true,
+          createdAt: true,
+          userAgent: true,
+          ipAddress: true
+        },
         with: {
           user: {
             columns: {
               id: true,
               name: true,
-              image: true,
-            },
-          },
+              image: true
+            }
+          }
         },
 
-        where: opts.input.userId ? eq(sessionTable.userId, opts.input.userId) : undefined,
+        where: opts.input.userId ? eq(sessionTable.userId, opts.input.userId) : undefined
       })
 
       const totalData = await db.select({ count: count() }).from(sessionTable)
@@ -201,7 +206,7 @@ const sessionRouter = router({
       const total = totalData[0].count
 
       return { sessions, page, limit, total }
-    }),
+    })
 })
 
 export default sessionRouter

@@ -1,0 +1,144 @@
+/* Finance-focused color system using Verdigris and Bronze */
+:root {
+  /* Primary Colors - Verdigris (Greenish-blue) */
+  --color-primary: #43b3ae;
+  --color-primary-light: #6bc4c0;
+  --color-primary-lighter: #8fd0cd;
+  --color-primary-dark: #359a96;
+  --color-primary-darker: #2a7e7a;
+
+  /* Secondary Colors - Bronze */
+  --color-secondary: #80461b;
+  --color-secondary-light: #a65d2a;
+  --color-secondary-lighter: #cc7439;
+  --color-secondary-dark: #5a3014;
+  --color-secondary-darker: #3d1f0d;
+
+  /* Neutral Colors - Light Theme */
+  --color-background: #fefefe;
+  --color-background-secondary: #f8fafa;
+  --color-background-tertiary: #f0f4f4;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f5f9f9;
+
+  /* Text Colors - Light Theme */
+  --color-text-primary: #1a2e2e;
+  --color-text-secondary: #2d4a4a;
+  --color-text-tertiary: #4a6b6b;
+  --color-text-muted: #6b8888;
+
+  /* Border Colors - Light Theme */
+  --color-border: #d1e0e0;
+  --color-border-light: #e5efef;
+  --color-border-dark: #b8cccc;
+
+  /* Status Colors */
+  --color-success: #22c55e;
+  --color-success-light: #4ade80;
+  --color-success-dark: #16a34a;
+
+  --color-warning: #f59e0b;
+  --color-warning-light: #fbbf24;
+  --color-warning-dark: #d97706;
+
+  --color-error: #ef4444;
+  --color-error-light: #f87171;
+  --color-error-dark: #dc2626;
+
+  --color-info: var(--color-primary);
+  --color-info-light: var(--color-primary-light);
+  --color-info-dark: var(--color-primary-dark);
+
+  /* Interactive States */
+  --color-focus: var(--color-primary);
+  --color-focus-ring: rgba(67, 179, 174, 0.2);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(26, 46, 46, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(26, 46, 46, 0.1), 0 2px 4px -1px rgba(26, 46, 46, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(26, 46, 46, 0.1), 0 4px 6px -2px rgba(26, 46, 46, 0.05);
+  --shadow-primary: 0 4px 6px -1px rgba(67, 179, 174, 0.2), 0 2px 4px -1px rgba(67, 179, 174, 0.1);
+  --shadow-secondary: 0 4px 6px -1px rgba(128, 70, 27, 0.2), 0 2px 4px -1px rgba(128, 70, 27, 0.1);
+}
+
+/* Dark Theme */
+.sl-theme-dark {
+  /* Background Colors - Dark Theme */
+  --color-background: #0f1b1b;
+  --color-background-secondary: #162626;
+  --color-background-tertiary: #1d3030;
+  --color-surface: #1a2e2e;
+  --color-surface-hover: #243939;
+
+  /* Text Colors - Dark Theme */
+  --color-text-primary: #e8f5f5;
+  --color-text-secondary: #d1e8e8;
+  --color-text-tertiary: #b8dddd;
+  --color-text-muted: #9fcccc;
+
+  /* Border Colors - Dark Theme */
+  --color-border: #2d4a4a;
+  --color-border-light: #243939;
+  --color-border-dark: #365555;
+
+  /* Primary and Secondary colors remain the same but may need adjusted variants */
+  --color-primary-light: #5cbbb7;
+  --color-primary-lighter: #7fc7c4;
+
+  --color-secondary-light: #a65d2a;
+  --color-secondary-lighter: #cc7439;
+
+  /* Adjusted shadows for dark theme */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-primary: 0 4px 6px -1px rgba(67, 179, 174, 0.3), 0 2px 4px -1px rgba(67, 179, 174, 0.2);
+  --shadow-secondary: 0 4px 6px -1px rgba(128, 70, 27, 0.3), 0 2px 4px -1px rgba(128, 70, 27, 0.2);
+
+  /* Focus ring needs to be more visible on dark backgrounds */
+  --color-focus-ring: rgba(67, 179, 174, 0.4);
+}
+
+/* Utility classes for quick color application */
+.text-primary {
+  color: var(--color-primary);
+}
+.text-secondary {
+  color: var(--color-secondary);
+}
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+.bg-surface {
+  background-color: var(--color-surface);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+.border-secondary {
+  border-color: var(--color-secondary);
+}
+.border-default {
+  border-color: var(--color-border);
+}
+
+/* Gradient utilities */
+.gradient-primary-secondary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+}
+
+.gradient-primary-light {
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
+}
+
+.gradient-secondary-light {
+  background: linear-gradient(135deg, var(--color-secondary-light), var(--color-secondary));
+}

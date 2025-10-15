@@ -1,18 +1,18 @@
-import { betterAuth } from "better-auth"
-import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { db } from "../context"
-import * as schema from "@fsb/drizzle"
+import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { db } from '../context'
+import * as schema from '@fsb/drizzle'
 
 export const auth = betterAuth({
   user: {
     additionalFields: {
       role: {
-        type: "string",
+        type: 'string',
         required: false,
-        defaultValue: "user",
-        input: false, // don't allow user to set role
-      },
-    },
+        defaultValue: 'user',
+        input: false // don't allow user to set role
+      }
+    }
   },
   emailAndPassword: { enabled: true },
   advanced: {
@@ -21,32 +21,32 @@ export const auth = betterAuth({
     disableCSRFCheck: true,
     cookies: {
       session_token: {
-        name: "fsb",
+        name: 'fsb',
         attributes: {
-          sameSite: "none",
+          sameSite: 'none',
           httpOnly: false,
-          secure: true,
-        },
-      },
+          secure: true
+        }
+      }
     },
     defaultCookieAttributes: {
-      sameSite: "none",
+      sameSite: 'none',
       httpOnly: false,
-      secure: true,
+      secure: true
     },
-    cookiePrefix: "fsb",
+    cookiePrefix: 'fsb'
     // crossSubDomainCookies: {
     //   enabled: true,
     // },
   },
-  trustedOrigins: ["http://localhost:3000", "https://fsb-client.onrender.com"],
+  trustedOrigins: ['http://localhost:3000', 'https://fsb-client.onrender.com'],
   database: drizzleAdapter(db, {
-    provider: "pg", // or "mysql", "sqlite"
+    provider: 'pg', // or "mysql", "sqlite"
     schema: {
       user: schema.userTable,
       session: schema.sessionTable,
       account: schema.accountTable,
-      verification: schema.verificationTable,
-    },
-  }),
+      verification: schema.verificationTable
+    }
+  })
 })

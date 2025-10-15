@@ -1,16 +1,10 @@
-import userRouter from "./userRouter"
-import sessionRouter from "./sessionRouter"
-import healthRouter from "./healthRouter"
-import gameRouter from "./gameRouter"
-import messageRouter from "./messageRouter"
-import { router } from "../trpc"
+import sessionRouter from './sessionRouter'
+import userRouter from './userRouter'
+import { router } from '../trpc'
 
 export const appRouter = router({
   session: sessionRouter,
-  health: healthRouter,
-  game: gameRouter,
-  user: userRouter,
-  message: messageRouter,
+  user: userRouter
 })
 
 export type AppRouter = typeof appRouter

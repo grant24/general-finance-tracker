@@ -7,3 +7,12 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+// Lit Web Components support
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      [elemName: string]: Record<string, unknown>
+    }
+  }
+}
