@@ -6,7 +6,7 @@ import { refreshAuthState } from '../../store/auth-store'
 
 // Import Shoelace components
 import '@shoelace-style/shoelace/dist/components/input/input.js'
-import '@shoelace-style/shoelace/dist/components/button/button.js'
+import '../shoelace-wrappers/sl-button-fancy.js'
 import '@shoelace-style/shoelace/dist/components/checkbox/checkbox.js'
 
 @customElement('login-component')
@@ -94,24 +94,6 @@ export class Login extends LitElement {
     sl-input::part(input) {
       color: var(--color-text-primary);
       font-size: 0.9rem;
-    }
-
-    /* Shoelace Button Theming */
-    sl-button[variant='primary']::part(base) {
-      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-      border-color: var(--color-primary);
-      color: white;
-      font-weight: 600;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      box-shadow: var(--shadow-primary);
-      transition: all 0.2s ease;
-    }
-
-    sl-button[variant='primary']::part(base):hover {
-      background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary-darker));
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-lg);
     }
 
     /* Shoelace Checkbox Theming */
@@ -264,16 +246,18 @@ export class Login extends LitElement {
         </div>
 
         <div class="form-group">
-          <sl-button
+          <sl-button-fancy
             id="login-button"
             type="submit"
             variant="primary"
             ?loading=${this.isSubmitting}
             ?disabled=${this.isSubmitting}
+            buttonWidth="100%"
+            buttonPadding="0.75em 1em"
           >
             <ph-sign-in slot="prefix"></ph-sign-in>
             ${this.isSubmitting ? 'Logging in...' : 'Login'}
-          </sl-button>
+          </sl-button-fancy>
 
           ${this.error ? html` <div class="error-message">${this.error}</div> ` : ''}
         </div>

@@ -85,11 +85,47 @@ npm run dev:server    # Backend only
 # Building
 npm run build:all     # Build everything
 npm run build:client  # Build frontend
-npm run build:server  # Build backend
+npm run build:server  # Backend only
 
 # Testing
 npm run test          # Run E2E tests
 ```
+
+### PostgreSQL Database Commands
+
+The dev container includes PostgreSQL 15. Use these commands to interact with the database:
+
+```bash
+# List all databases
+psql postgresql://postgres:password@db:5432/finance_tracker_dev -c "\l"
+
+# List databases with sizes
+psql postgresql://postgres:password@db:5432/finance_tracker_dev -c "SELECT datname, pg_size_pretty(pg_database_size(datname)) as size FROM pg_database;"
+
+# Connect to interactive PostgreSQL shell
+psql postgresql://postgres:password@db:5432/finance_tracker_dev
+
+# Connect to a specific database
+psql postgresql://postgres:password@db:5432/database_name
+```
+
+**Inside psql interactive shell:**
+
+```sql
+\l              -- List databases
+\c database     -- Connect to database
+\dt             -- List tables in current database
+\d table_name   -- Describe table structure
+\q              -- Quit psql
+```
+
+**Database connection details:**
+
+- Host: `db` (container service name)
+- Port: `5432`
+- Username: `postgres`
+- Password: `password`
+- Default database: `finance_tracker_dev`
 
 ## Troubleshooting
 
