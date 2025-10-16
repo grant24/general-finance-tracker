@@ -1,0 +1,67 @@
+{
+  "name": "Finance Tracker Development",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
+  // Features removed to avoid Docker Hub auth issues
+  // Git, Node.js, and other tools are pre-installed in the base image
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-json",
+        "ms-vscode.vscode-eslint",
+        "runem.lit-plugin",
+        "eamodio.gitlens",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "ms-playwright.playwright",
+        "christian-kohler.path-intellisense",
+        "formulahendry.auto-rename-tag"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "typescript.preferences.quoteStyle": "single",
+        "javascript.preferences.quoteStyle": "single"
+      }
+    }
+  },
+
+  // Forward ports for development servers
+  "forwardPorts": [3000, 2022, 5432],
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend (Vite)",
+      "onAutoForward": "notify"
+    },
+    "2022": {
+      "label": "Backend (Fastify)",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Post-create command to set up the development environment
+  "postCreateCommand": "npm install",
+
+  // Mount the local git config and credentials
+  "mounts": [
+    "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached"
+  ],
+
+  // Run as non-root user
+  "remoteUser": "node",
+
+  // Keep container running
+  "shutdownAction": "stopCompose"
+}

@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    working_dir: /workspace
+    command: sleep infinity
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@db:5432/finance_tracker_dev
+      - SSL_MODE=disable
+      - CLIENT_URL=http://localhost:3000
+      - VITE_URL_BACKEND=http://localhost:2022
+      - BETTER_AUTH_SECRET=dev-secret-key-change-in-production
+    ports:
+      - '3000:3000' # Frontend (Vite)
+      - '2022:2022' # Backend (Fastify)
+    depends_on:
+      - db
+    networks:
+      - dev-network
+
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: finance_tracker_dev
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - dev-network
+
+volumes:
+  postgres_data:
+
+networks:
+  dev-network:
+    driver: bridge
