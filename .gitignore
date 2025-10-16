@@ -131,3 +131,6 @@ blob-report/
 *.tgz
 *.tar.gz
 
+# Allow .dockerignore (needed for Docker builds)
+!.dockerignore
+
