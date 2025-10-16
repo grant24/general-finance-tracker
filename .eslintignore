@@ -1,0 +1,14 @@
+# ESLint ignore patterns
+node_modules/
+dist/
+build/
+out/
+*.js
+*.d.ts
+*.map
+coverage/
+playwright-report/
+test-results/
+.env*
+.vscode/
+.idea/
