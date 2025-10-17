@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit'
 import { customElement } from 'lit/decorators.js'
 import { StoreController } from '@nanostores/lit'
-import { authState } from '../../store/auth-store'
+import { authState } from '../../store/auth'
 import './logout-component'
 import './login-component'
 

@@ -1,18 +1,15 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import { trpcClient, RouterOutput } from '../../lib/trpc'
-import { tryCatch } from '../../lib/try-catch'
+import { updateUserField, getUpdateState } from '../../store/user-update'
 import './saved-icon-effect'
 
 // Import Shoelace components
 import '@shoelace-style/shoelace/dist/components/input/input.js'
 
-type User = RouterOutput['user']['getUserProfile']
-
 @customElement('update-user-age')
 export class UpdateUserAge extends LitElement {
   @property({ attribute: false })
-  user!: User
+  user!: any
 
   @property({ attribute: false })
   onUpdate?: () => void
@@ -22,15 +19,6 @@ export class UpdateUserAge extends LitElement {
 
   @state()
   private age: number | '' = ''
-
-  @state()
-  private isUpdating = false
-
-  @state()
-  private showSuccess = false
-
-  @state()
-  private error: string | null = null
 
   static styles = css`
     :host {
@@ -176,7 +164,6 @@ export class UpdateUserAge extends LitElement {
 
   private handleEdit() {
     this.isEdit = true
-    this.error = null
     // Focus the input after it renders
     this.updateComplete.then(() => {
       const input = this.shadowRoot?.querySelector('sl-input')
@@ -189,43 +176,19 @@ export class UpdateUserAge extends LitElement {
   private handleCancel() {
     this.isEdit = false
     this.age = this.user?.age ?? ''
-    this.error = null
   }
 
   private async handleSave() {
-    if (!this.user || this.isUpdating) return
+    if (!this.user) return
 
-    this.isUpdating = true
-    this.error = null
+    await updateUserField(this.user.id, 'age', this.age === '' ? null : Number(this.age))
 
-    const result = await tryCatch(
-      trpcClient.user.updateUser.mutate({
-        id: this.user.id,
-        age: this.age === '' ? undefined : Number(this.age)
-      })
-    )
+    this.isEdit = false
+    this.age = this.user?.age ?? ''
 
-    if (result.error) {
-      this.error = result.error.message
-      this.isUpdating = false
-      return
+    if (this.onUpdate) {
+      this.onUpdate()
     }
-
-    if (result.data) {
-      this.isEdit = false
-      this.showSuccess = true
-
-      // Hide success indicator after 2 seconds
-      setTimeout(() => {
-        this.showSuccess = false
-      }, 2000)
-
-      if (this.onUpdate) {
-        this.onUpdate()
-      }
-    }
-
-    this.isUpdating = false
   }
 
   private handleKeyDown(e: KeyboardEvent) {
@@ -243,6 +206,7 @@ export class UpdateUserAge extends LitElement {
 
   render() {
     const label = 'Age'
+    const updateState = getUpdateState(this.user?.id, 'age')
 
     return html`
       <div class="field-container">
@@ -253,8 +217,8 @@ export class UpdateUserAge extends LitElement {
                 <span class="field-value">${this.user?.age ?? 'Not set'}</span>
                 <ph-pencil-simple class="edit-icon"></ph-pencil-simple>
                 <div class="status-icons">
-                  ${this.showSuccess ? html`<saved-icon-effect></saved-icon-effect>` : ''}
-                  ${this.isUpdating ? html`<ph-spinner class="spinner"></ph-spinner>` : ''}
+                  ${updateState.showSuccess ? html`<saved-icon-effect></saved-icon-effect>` : ''}
+                  ${updateState.isUpdating ? html`<ph-spinner class="spinner"></ph-spinner>` : ''}
                 </div>
               </div>
             `
@@ -271,7 +235,7 @@ export class UpdateUserAge extends LitElement {
                     @sl-input=${this.handleInputChange}
                     @keydown=${this.handleKeyDown}
                     @sl-blur=${this.handleCancel}
-                    ?disabled=${this.isUpdating}
+                    ?disabled=${updateState.isUpdating}
                   ></sl-input>
                   <ph-check-circle
                     class="save-button"
@@ -284,7 +248,7 @@ export class UpdateUserAge extends LitElement {
             `}
       </div>
 
-      ${this.error ? html` <div class="error-message">${this.error}</div> ` : ''}
+      ${updateState.error ? html` <div class="error-message">${updateState.error}</div> ` : ''}
     `
   }
 }

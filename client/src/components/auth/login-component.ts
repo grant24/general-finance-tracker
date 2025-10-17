@@ -1,8 +1,8 @@
 import { LitElement, html, css } from 'lit'
-import { customElement, state } from 'lit/decorators.js'
+import { customElement } from 'lit/decorators.js'
 import { Router } from '@vaadin/router'
-import { authClient } from '../../lib/auth-client'
-import { refreshAuthState } from '../../store/auth-store'
+import { StoreController } from '@nanostores/lit'
+import { loginForm, setLoginEmail, setLoginPassword, toggleShowPassword, submitLogin } from '../../store/login-form.js'
 
 // Import Shoelace components
 import '@shoelace-style/shoelace/dist/components/input/input.js'
@@ -11,20 +11,7 @@ import '@shoelace-style/shoelace/dist/components/checkbox/checkbox.js'
 
 @customElement('login-component')
 export class Login extends LitElement {
-  @state()
-  private showPassword = false
-
-  @state()
-  private error: string | null = null
-
-  @state()
-  private isSubmitting = false
-
-  @state()
-  private formData = {
-    email: 'alan@example.com',
-    password: 'securePassword'
-  }
+  private loginController = new StoreController(this, loginForm)
 
   static styles = css`
     :host {
@@ -157,45 +144,24 @@ export class Login extends LitElement {
 
   private async handleSubmit(e: Event) {
     e.preventDefault()
-    this.isSubmitting = true
-    this.error = null
-
-    try {
-      // Use better-auth client directly for login
-      const loginResult = await authClient.signIn.email({
-        email: this.formData.email,
-        password: this.formData.password
-      })
-
-      if (loginResult.error) {
-        this.error = loginResult.error.message || 'Login failed'
-        this.isSubmitting = false
-        return
-      }
-
-      if (loginResult.data) {
-        // Refresh auth state to update the global state
-        await refreshAuthState()
-        // Session is now established, redirect to dashboard
-        Router.go('/dashboard')
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-      this.error = 'An unexpected error occurred during login'
-    }
-
-    this.isSubmitting = false
+    await submitLogin()
   }
 
-  private handleInputChange(field: 'email' | 'password', value: string) {
-    this.formData = {
-      ...this.formData,
-      [field]: value
+  private async handleButtonClick() {
+    await submitLogin()
+  }
+
+  private handleInputChange(field: 'email' | 'password', e: CustomEvent) {
+    const value = (e.target as any).value
+    if (field === 'email') {
+      setLoginEmail(value)
+    } else {
+      setLoginPassword(value)
     }
   }
 
   private togglePasswordVisibility() {
-    this.showPassword = !this.showPassword
+    toggleShowPassword()
   }
 
   private handleSignupClick() {
@@ -203,6 +169,8 @@ export class Login extends LitElement {
   }
 
   render() {
+    const formState = this.loginController.value
+
     return html`
       <div class="header">
         <ph-sign-in size="1.5rem" class="icon"></ph-sign-in>
@@ -216,8 +184,8 @@ export class Login extends LitElement {
             name="email"
             type="email"
             placeholder="Email"
-            value=${this.formData.email}
-            @sl-input=${(e: CustomEvent) => this.handleInputChange('email', (e.target as HTMLInputElement).value)}
+            value=${formState.email}
+            @sl-input=${(e: CustomEvent) => this.handleInputChange('email', e)}
             required
             autofocus
           ></sl-input>
@@ -227,10 +195,10 @@ export class Login extends LitElement {
           <sl-input
             id="password-input"
             name="password"
-            type=${this.showPassword ? 'text' : 'password'}
+            type=${formState.showPassword ? 'text' : 'password'}
             placeholder="Password"
-            value=${this.formData.password}
-            @sl-input=${(e: CustomEvent) => this.handleInputChange('password', (e.target as HTMLInputElement).value)}
+            value=${formState.password}
+            @sl-input=${(e: CustomEvent) => this.handleInputChange('password', e)}
             required
           ></sl-input>
         </div>
@@ -238,7 +206,7 @@ export class Login extends LitElement {
         <div class="checkbox-group">
           <sl-checkbox
             id="show-password-checkbox"
-            ?checked=${this.showPassword}
+            ?checked=${formState.showPassword}
             @sl-change=${this.togglePasswordVisibility}
           >
             Show Password
@@ -248,18 +216,18 @@ export class Login extends LitElement {
         <div class="form-group">
           <sl-button-fancy
             id="login-button"
-            type="submit"
             variant="primary"
-            ?loading=${this.isSubmitting}
-            ?disabled=${this.isSubmitting}
+            ?loading=${formState.isSubmitting}
+            ?disabled=${formState.isSubmitting}
             buttonWidth="100%"
             buttonPadding="0.75em 1em"
+            @click=${this.handleButtonClick}
           >
             <ph-sign-in slot="prefix"></ph-sign-in>
-            ${this.isSubmitting ? 'Logging in...' : 'Login'}
+            ${formState.isSubmitting ? 'Logging in...' : 'Login'}
           </sl-button-fancy>
 
-          ${this.error ? html` <div class="error-message">${this.error}</div> ` : ''}
+          ${formState.error ? html` <div class="error-message">${formState.error}</div> ` : ''}
         </div>
 
         <div class="signup-link">

@@ -1,8 +1,7 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, state } from 'lit/decorators.js'
 import { Router } from '@vaadin/router'
-import { authClient } from '../../lib/auth-client'
-import { refreshAuthState } from '../../store/auth-store'
+import { signUp } from '../../store/auth'
 
 // Import Shoelace components
 import '@shoelace-style/shoelace/dist/components/input/input.js'
@@ -162,11 +161,10 @@ export class SignupComponent extends LitElement {
     this.error = null
 
     try {
-      // Use better-auth client directly for signup
-      const signupResult = await authClient.signUp.email({
+      const signupResult = await signUp({
+        name: this.formData.name,
         email: this.formData.email,
-        password: this.formData.password,
-        name: this.formData.name
+        password: this.formData.password
       })
 
       if (signupResult.error) {
@@ -176,20 +174,47 @@ export class SignupComponent extends LitElement {
       }
 
       if (signupResult.data) {
-        // Refresh auth state to update the global state
-        await refreshAuthState()
-        // Session is now established, redirect to dashboard
+        // Session is now established by the helper, redirect to dashboard
         Router.go('/dashboard')
       }
     } catch (error) {
       console.error('Signup error:', error)
       this.error = 'An unexpected error occurred during signup'
+    } finally {
+      this.isSubmitting = false
     }
-
-    this.isSubmitting = false
   }
 
-  private handleInputChange(field: 'name' | 'email' | 'password', value: string) {
+  private async handleButtonClick() {
+    this.isSubmitting = true
+    this.error = null
+
+    try {
+      const signupResult = await signUp({
+        name: this.formData.name,
+        email: this.formData.email,
+        password: this.formData.password
+      })
+
+      if (signupResult.error) {
+        this.error = signupResult.error.message || 'Signup failed'
+        this.isSubmitting = false
+        return
+      }
+
+      if (signupResult.data) {
+        Router.go('/dashboard')
+      }
+    } catch (error) {
+      console.error('Signup error:', error)
+      this.error = 'An unexpected error occurred during signup'
+    } finally {
+      this.isSubmitting = false
+    }
+  }
+
+  private handleInputChange(field: 'name' | 'email' | 'password', e: CustomEvent) {
+    const value = (e.target as any).value
     this.formData = {
       ...this.formData,
       [field]: value
@@ -219,7 +244,7 @@ export class SignupComponent extends LitElement {
             type="text"
             placeholder="Name"
             value=${this.formData.name}
-            @sl-input=${(e: CustomEvent) => this.handleInputChange('name', (e.target as HTMLInputElement).value)}
+            @sl-input=${(e: CustomEvent) => this.handleInputChange('name', e)}
             required
           ></sl-input>
         </div>
@@ -231,7 +256,7 @@ export class SignupComponent extends LitElement {
             type="email"
             placeholder="Email"
             value=${this.formData.email}
-            @sl-input=${(e: CustomEvent) => this.handleInputChange('email', (e.target as HTMLInputElement).value)}
+            @sl-input=${(e: CustomEvent) => this.handleInputChange('email', e)}
             required
           ></sl-input>
         </div>
@@ -243,7 +268,7 @@ export class SignupComponent extends LitElement {
             type=${this.showPassword ? 'text' : 'password'}
             placeholder="Password"
             value=${this.formData.password}
-            @sl-input=${(e: CustomEvent) => this.handleInputChange('password', (e.target as HTMLInputElement).value)}
+            @sl-input=${(e: CustomEvent) => this.handleInputChange('password', e)}
             required
           ></sl-input>
         </div>
@@ -261,12 +286,12 @@ export class SignupComponent extends LitElement {
         <div class="form-group">
           <sl-button-fancy
             id="signup-button"
-            type="submit"
             variant="warning"
             ?loading=${this.isSubmitting}
             ?disabled=${this.isSubmitting}
             buttonWidth="100%"
             buttonPadding="0.75em 1em"
+            @click=${this.handleButtonClick}
           >
             <ph-key slot="prefix"></ph-key>
             ${this.isSubmitting ? 'Signing up...' : 'Sign up'}

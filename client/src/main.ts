@@ -8,7 +8,7 @@ import '@phosphor-icons/webcomponents'
 import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js'
 
 // Import auth initialization
-import { initializeAuth } from './store/auth-store'
+import { initializeAuth } from './store/auth'
 
 // Set the base path for Shoelace assets (for development with Vite)
 setBasePath('https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/dist/')

@@ -1,5 +1,6 @@
 import { Router } from '@vaadin/router'
-import { authState, refreshAuthState } from './store/auth-store'
+import { authState, refreshAuthState } from './store/auth'
+import { resetLoginFormState } from './store/login-form'
 
 import './components/auth/auth-management'
 import './components/auth/signup-component'
@@ -102,8 +103,24 @@ export class AppRouter {
       { path: '/', component: 'home-page' },
       { path: '/dashboard', component: 'dashboard-page' },
       { path: '/budget', component: 'budget-page' },
-      { path: '/login', component: 'auth-management' },
-      { path: '/signup', component: 'signup-component' },
+      {
+        path: '/login',
+        component: 'auth-management',
+        action: () => {
+          // Reset any previous login form state when navigating to login
+          resetLoginFormState()
+          return undefined
+        }
+      },
+      {
+        path: '/signup',
+        component: 'signup-component',
+        action: () => {
+          // Reset login form state as a safety when visiting signup
+          resetLoginFormState()
+          return undefined
+        }
+      },
       {
         path: '/sessions',
         component: 'sessions-page',

@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "vitest run --run client/test",
     "build:check": "tsc && vite build",
     "lint": "eslint .",
     "start": "vite preview"
@@ -26,6 +27,7 @@
     "phosphor-icons": "^1.4.2"
   },
   "devDependencies": {
+    "vitest": "^1.0.0",
     "@eslint/js": "^9.36.0",
     "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",

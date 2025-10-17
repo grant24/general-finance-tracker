@@ -37,9 +37,9 @@
   --color-success-light: #4ade80;
   --color-success-dark: #16a34a;
 
-  --color-warning: #f59e0b;
-  --color-warning-light: #fbbf24;
-  --color-warning-dark: #d97706;
+  --color-warning: #a65d2a;
+  --color-warning-light: #cc7439;
+  --color-warning-dark: #80461b;
 
   --color-error: #ef4444;
   --color-error-light: #f87171;
@@ -57,6 +57,7 @@
   --shadow-sm: 0 1px 2px 0 rgba(26, 46, 46, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(26, 46, 46, 0.1), 0 2px 4px -1px rgba(26, 46, 46, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(26, 46, 46, 0.1), 0 4px 6px -2px rgba(26, 46, 46, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(26, 46, 46, 0.1), 0 10px 10px -5px rgba(26, 46, 46, 0.04);
   --shadow-primary: 0 4px 6px -1px rgba(67, 179, 174, 0.2), 0 2px 4px -1px rgba(67, 179, 174, 0.1);
   --shadow-secondary: 0 4px 6px -1px rgba(128, 70, 27, 0.2), 0 2px 4px -1px rgba(128, 70, 27, 0.1);
 }

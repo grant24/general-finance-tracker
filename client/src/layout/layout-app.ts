@@ -1,25 +1,25 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, state, query } from 'lit/decorators.js'
 import { Router } from '@vaadin/router'
-import { AppRouter } from '../app-router'
-import { isDarkMode } from '../store/use-theme-store'
+import { isDarkMode } from '../store/theme'
+import { StoreController } from '@nanostores/lit'
 import '../auth/avatar-menu'
 import './nav-links'
 import './burger-logic'
 import './logo-app'
+import './theme-button'
+import { AppRouter } from '../app-router'
 
 @customElement('layout-app')
 export class LayoutApp extends LitElement {
-  @state()
-  private sidebarOpen = false
+  private isDarkModeController = new StoreController(this, isDarkMode)
 
   @state()
-  private currentTheme = isDarkMode.get()
+  private sidebarOpen = false
 
   @query('#outlet')
   private outlet!: HTMLElement
 
-  private appRouter!: AppRouter
   private clickOutsideHandler?: (event: MouseEvent) => void
 
   static styles = css`
@@ -213,17 +213,15 @@ export class LayoutApp extends LitElement {
         width: 2rem;
         height: 2rem;
       }
+
+      avatar-menu {
+        display: none;
+      }
     }
   `
 
   connectedCallback() {
     super.connectedCallback()
-
-    // Subscribe to theme changes
-    isDarkMode.subscribe((darkMode) => {
-      this.currentTheme = darkMode
-      this.updateThemeClass()
-    })
 
     this.setupClickOutsideHandler()
   }
@@ -239,12 +237,12 @@ export class LayoutApp extends LitElement {
   }
 
   private setupRouter() {
-    this.appRouter = new AppRouter(this.outlet)
+    new AppRouter(this.outlet)
   }
 
   private updateThemeClass() {
     const rootElement = document.documentElement
-    if (this.currentTheme) {
+    if (this.isDarkModeController.value) {
       rootElement.classList.add('sl-theme-dark')
       rootElement.classList.remove('sl-theme-light')
     } else {
@@ -332,6 +330,9 @@ export class LayoutApp extends LitElement {
           <main id="outlet"></main>
         </div>
       </div>
+
+      <!-- Theme Switcher -->
+      <theme-button></theme-button>
     `
   }
 }

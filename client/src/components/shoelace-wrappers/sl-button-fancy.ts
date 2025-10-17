@@ -1,7 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
-import '@shoelace-style/shoelace/dist/components/button/button.js'
 
 /**
  * Enhanced Shoelace button wrapper with fancy styling
@@ -10,26 +9,25 @@ import '@shoelace-style/shoelace/dist/components/button/button.js'
  */
 @customElement('sl-button-fancy')
 export class SlButtonFancy extends LitElement {
-  // Expose all sl-button properties
-  @property({ type: String }) variant: 'default' | 'primary' | 'success' | 'neutral' | 'warning' | 'danger' | 'text' =
-    'default'
-  @property({ type: String }) size: 'small' | 'medium' | 'large' = 'medium'
+  // Custom properties
+  @property({ type: String }) buttonWidth = ''
+  @property({ type: String }) buttonPadding = ''
+
+  // SlButton properties
+  @property() variant: 'default' | 'primary' | 'success' | 'neutral' | 'warning' | 'danger' | 'text' = 'default'
+  @property() size: 'small' | 'medium' | 'large' = 'medium'
   @property({ type: Boolean }) outline = false
   @property({ type: Boolean }) pill = false
   @property({ type: Boolean }) circle = false
   @property({ type: Boolean }) disabled = false
   @property({ type: Boolean }) loading = false
-  @property({ type: String }) type: 'button' | 'submit' | 'reset' = 'button'
+  @property() type: 'button' | 'submit' | 'reset' = 'button'
   @property({ type: String }) name = ''
   @property({ type: String }) value = ''
   @property({ type: String }) href = ''
-  @property({ type: String }) target: '_blank' | '_parent' | '_self' | '_top' | '' = ''
+  @property({ type: String }) target = ''
   @property({ type: String }) download = ''
   @property({ type: String }) form = ''
-
-  // Custom properties
-  @property({ type: String }) buttonWidth = ''
-  @property({ type: String }) buttonPadding = ''
 
   static styles = css`
     :host {
@@ -138,7 +136,7 @@ export class SlButtonFancy extends LitElement {
   `
 
   // Apply custom styles from the custom properties
-  private _applyCustomButtonStyles() {
+  private applyCustomButtonStyles() {
     if (this.buttonPadding) {
       this.style.setProperty('--fancy-btn-padding', this.buttonPadding)
     } else {
@@ -151,49 +149,8 @@ export class SlButtonFancy extends LitElement {
     }
   }
 
-  // Forward events to maintain sl-button API compatibility
-  private _handleClick(e: Event) {
-    this.dispatchEvent(
-      new CustomEvent('click', {
-        detail: e,
-        bubbles: true,
-        composed: true
-      })
-    )
-  }
-
-  private _handleBlur(e: CustomEvent) {
-    this.dispatchEvent(
-      new CustomEvent('sl-blur', {
-        detail: e.detail,
-        bubbles: true,
-        composed: true
-      })
-    )
-  }
-
-  private _handleFocus(e: CustomEvent) {
-    this.dispatchEvent(
-      new CustomEvent('sl-focus', {
-        detail: e.detail,
-        bubbles: true,
-        composed: true
-      })
-    )
-  }
-
-  private _handleInvalid(e: CustomEvent) {
-    this.dispatchEvent(
-      new CustomEvent('sl-invalid', {
-        detail: e.detail,
-        bubbles: true,
-        composed: true
-      })
-    )
-  }
-
   render() {
-    this._applyCustomButtonStyles()
+    this.applyCustomButtonStyles()
 
     return html`
       <sl-button
@@ -208,55 +165,15 @@ export class SlButtonFancy extends LitElement {
         name=${this.name}
         value=${this.value}
         href=${this.href}
-        target=${ifDefined(this.target || undefined)}
-        download=${this.download}
+        target=${ifDefined(this.target as any)}
+        download=${ifDefined(this.download)}
         form=${this.form}
-        @click=${this._handleClick}
-        @sl-blur=${this._handleBlur}
-        @sl-focus=${this._handleFocus}
-        @sl-invalid=${this._handleInvalid}
       >
         <slot name="prefix" slot="prefix"></slot>
         <slot></slot>
         <slot name="suffix" slot="suffix"></slot>
       </sl-button>
     `
-  }
-
-  // Expose sl-button methods
-  public click() {
-    const button = this.shadowRoot?.querySelector('sl-button') as any
-    button?.click()
-  }
-
-  public focus(options?: FocusOptions) {
-    const button = this.shadowRoot?.querySelector('sl-button') as any
-    button?.focus(options)
-  }
-
-  public blur() {
-    const button = this.shadowRoot?.querySelector('sl-button') as any
-    button?.blur()
-  }
-
-  public checkValidity() {
-    const button = this.shadowRoot?.querySelector('sl-button') as any
-    return button?.checkValidity() ?? true
-  }
-
-  public getForm() {
-    const button = this.shadowRoot?.querySelector('sl-button') as any
-    return button?.getForm()
-  }
-
-  public reportValidity() {
-    const button = this.shadowRoot?.querySelector('sl-button') as any
-    return button?.reportValidity() ?? true
-  }
-
-  public setCustomValidity(message: string) {
-    const button = this.shadowRoot?.querySelector('sl-button') as any
-    button?.setCustomValidity(message)
   }
 }
 

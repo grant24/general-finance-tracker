@@ -1,29 +1,16 @@
 import { LitElement, html, css } from 'lit'
-import { customElement, property, state } from 'lit/decorators.js'
-import { trpcClient } from '../../lib/trpc'
-import { tryCatch } from '../../lib/try-catch'
-
-interface UserProfile {
-  id: string
-  name: string
-  email: string
-  image?: string | null
-  age?: number | null
-}
+import { customElement, property } from 'lit/decorators.js'
+import { fetchUserProfile, getUserProfileState, userProfiles } from '../../store/user-profile'
+import { StoreController } from '@nanostores/lit'
 
 @customElement('profile-query')
 export class ProfileQuery extends LitElement {
   @property()
   meId = ''
 
-  @state()
-  private userData: UserProfile | null = null
-
-  @state()
-  private isLoading = true
-
-  @state()
-  private error: string | null = null
+  // Subscribe to the userProfiles store so the component re-renders when profile state changes
+  // prefixed with _ to indicate intentionally unused variable (it establishes the subscription)
+  private _profilesController = new StoreController(this, userProfiles)
 
   static styles = css`
     :host {
@@ -148,38 +135,22 @@ export class ProfileQuery extends LitElement {
 
   connectedCallback() {
     super.connectedCallback()
+    void this._profilesController
     if (this.meId) {
-      this.loadUserProfile()
+      fetchUserProfile(this.meId)
     }
   }
 
   updated(changedProperties: Map<string, unknown>) {
     if (changedProperties.has('meId') && this.meId) {
-      this.loadUserProfile()
+      fetchUserProfile(this.meId)
     }
-  }
-
-  private async loadUserProfile() {
-    this.isLoading = true
-    this.error = null
-
-    const result = await tryCatch(trpcClient.user.getUserProfile.query({ id: this.meId }))
-
-    if (result.error) {
-      this.error = result.error.message
-      this.isLoading = false
-      return
-    }
-
-    if (result.data) {
-      this.userData = result.data
-    }
-
-    this.isLoading = false
   }
 
   render() {
-    if (this.isLoading) {
+    const profileState = getUserProfileState(this.meId)
+
+    if (profileState.isLoading) {
       return html`
         <div class="loading">
           <sl-spinner></sl-spinner>
@@ -188,19 +159,21 @@ export class ProfileQuery extends LitElement {
       `
     }
 
-    if (this.error) {
-      return html` <div class="error">Error loading profile: ${this.error}</div> `
+    if (profileState.error) {
+      return html` <div class="error">Error loading profile: ${profileState.error}</div> `
     }
 
-    if (!this.userData) {
+    if (!profileState.data) {
       return html` <div class="no-data">No profile data available</div> `
     }
+
+    const userData = profileState.data
 
     return html`
       <div class="profile-content">
         <div class="avatar-section">
-          ${this.userData.image
-            ? html` <img src=${this.userData.image} alt="Profile" class="avatar" /> `
+          ${userData.image
+            ? html` <img src=${userData.image} alt="Profile" class="avatar" /> `
             : html`
                 <div class="default-avatar">
                   <ph-user-circle class="default-avatar-icon"></ph-user-circle>
@@ -211,19 +184,19 @@ export class ProfileQuery extends LitElement {
         <div class="user-details">
           <div class="detail-item">
             <div class="detail-label">Name</div>
-            <div class="detail-value">${this.userData.name}</div>
+            <div class="detail-value">${userData.name}</div>
           </div>
 
           <div class="detail-item">
             <div class="detail-label">Email</div>
-            <div class="detail-value">${this.userData.email}</div>
+            <div class="detail-value">${userData.email}</div>
           </div>
 
-          ${this.userData.age
+          ${userData.age
             ? html`
                 <div class="detail-item">
                   <div class="detail-label">Age</div>
-                  <div class="detail-value">${this.userData.age}</div>
+                  <div class="detail-value">${userData.age}</div>
                 </div>
               `
             : ''}

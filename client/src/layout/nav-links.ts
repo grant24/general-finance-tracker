@@ -1,21 +1,22 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import { StoreController } from '@nanostores/lit'
-import { isDarkMode, toggleDarkMode } from '../store/use-theme-store'
-import { authState } from '../store/auth-store'
-import { getSession } from '../lib/auth-client'
 import { Router } from '@vaadin/router'
+import { StoreController } from '@nanostores/lit'
+import { isDarkMode } from '../store/theme'
+import { authState } from '../store/auth'
+import { getSession } from '../lib/auth-client'
 import '@shoelace-style/shoelace/dist/components/button/button.js'
 import '@shoelace-style/shoelace/dist/components/icon/icon.js'
+import '@shoelace-style/shoelace/dist/components/divider/divider.js'
 import '../auth/avatar-menu'
 
 @customElement('nav-links')
 export class NavLinks extends LitElement {
-  private themeController = new StoreController(this, isDarkMode)
-  private authController = new StoreController(this, authState)
-
   @property({ attribute: false })
   onClick?: () => void
+
+  private authStateController = new StoreController(this, authState)
+  private isDarkModeController = new StoreController(this, isDarkMode)
 
   @state()
   private currentPath = window.location.pathname
@@ -70,15 +71,14 @@ export class NavLinks extends LitElement {
       box-shadow: var(--shadow-primary);
     }
 
+    .nav-link.active.dark {
+      color: black;
+    }
+
     .nav-item {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-    }
-
-    .theme-toggle {
-      margin-top: auto;
-      padding-top: 2rem;
     }
 
     sl-icon {
@@ -94,16 +94,9 @@ export class NavLinks extends LitElement {
       font-size: 1rem;
     }
 
-    .divider {
-      height: 1px;
-      background-color: var(--color-border);
-      margin: 1rem 0;
-    }
-
     .mobile-avatar {
       display: none;
       padding: 1rem 0;
-      border-top: 1px solid var(--color-border);
       margin-top: auto;
     }
 
@@ -111,11 +104,6 @@ export class NavLinks extends LitElement {
     @media (max-width: 768px) {
       .mobile-avatar {
         display: block;
-      }
-
-      .theme-toggle {
-        margin-top: 0;
-        padding-top: 1rem;
       }
     }
   `
@@ -159,16 +147,12 @@ export class NavLinks extends LitElement {
     Router.go(path)
   }
 
-  private handleThemeToggle() {
-    toggleDarkMode()
-  }
-
   private isActiveLink(path: string): boolean {
     return this.currentPath === path
   }
 
   private renderAdminSection() {
-    const currentAuth = this.authController.value
+    const currentAuth = this.authStateController.value
 
     // Only show admin section for authenticated admin users
     if (!currentAuth.isAuthenticated || currentAuth.user?.role !== 'admin') {
@@ -177,7 +161,7 @@ export class NavLinks extends LitElement {
 
     return html`
       <button
-        class="nav-link ${this.isActiveLink('/users') ? 'active' : ''}"
+        class="nav-link ${this.isActiveLink('/users') ? 'active' : ''} ${this.isDarkModeController.value ? 'dark' : ''}"
         @click=${() => this.handleNavClick('/users')}
       >
         <div class="nav-item">
@@ -187,7 +171,9 @@ export class NavLinks extends LitElement {
       </button>
 
       <button
-        class="nav-link ${this.isActiveLink('/sessions') ? 'active' : ''}"
+        class="nav-link ${this.isActiveLink('/sessions') ? 'active' : ''} ${this.isDarkModeController.value
+          ? 'dark'
+          : ''}"
         @click=${() => this.handleNavClick('/sessions')}
       >
         <div class="nav-item">
@@ -196,17 +182,20 @@ export class NavLinks extends LitElement {
         </div>
       </button>
 
-      <div class="divider"></div>
+      <sl-divider style="--width: 1px; --spacing: 2rem; --color: var(--color-border);"></sl-divider>
     `
   }
 
   render() {
-    const darkMode = this.themeController.value
+    const darkModeClass = this.isDarkModeController.value ? 'dark' : ''
 
     return html`
       <div class="nav-container">
         <nav>
-          <button class="nav-link ${this.isActiveLink('/') ? 'active' : ''}" @click=${() => this.handleNavClick('/')}>
+          <button
+            class="nav-link ${this.isActiveLink('/') ? 'active' : ''} ${darkModeClass}"
+            @click=${() => this.handleNavClick('/')}
+          >
             <div class="nav-item">
               <ph-house-simple size="1.25rem" weight="fill"></ph-house-simple>
               <span>Home</span>
@@ -214,7 +203,7 @@ export class NavLinks extends LitElement {
           </button>
 
           <button
-            class="nav-link ${this.isActiveLink('/dashboard') ? 'active' : ''}"
+            class="nav-link ${this.isActiveLink('/dashboard') ? 'active' : ''} ${darkModeClass}"
             @click=${() => this.handleNavClick('/dashboard')}
           >
             <div class="nav-item">
@@ -224,7 +213,7 @@ export class NavLinks extends LitElement {
           </button>
 
           <button
-            class="nav-link ${this.isActiveLink('/budget') ? 'active' : ''}"
+            class="nav-link ${this.isActiveLink('/budget') ? 'active' : ''} ${darkModeClass}"
             @click=${() => this.handleNavClick('/budget')}
           >
             <div class="nav-item">
@@ -233,7 +222,7 @@ export class NavLinks extends LitElement {
             </div>
           </button>
 
-          <div class="divider"></div>
+          <sl-divider style="--width: 1px; --spacing: 1rem; --color: var(--color-border);"></sl-divider>
 
           ${this.renderAdminSection()}
 
@@ -249,17 +238,6 @@ export class NavLinks extends LitElement {
 
           <div class="mobile-avatar">
             <avatar-menu></avatar-menu>
-          </div>
-
-          <div class="theme-toggle">
-            <button class="nav-link" @click=${this.handleThemeToggle}>
-              <div class="nav-item">
-                ${darkMode
-                  ? html`<ph-sun size="1.25rem" weight="fill"></ph-sun>`
-                  : html`<ph-moon size="1.25rem" weight="fill"></ph-moon>`}
-                <span>${darkMode ? 'Light Mode' : 'Dark Mode'}</span>
-              </div>
-            </button>
           </div>
         </nav>
       </div>

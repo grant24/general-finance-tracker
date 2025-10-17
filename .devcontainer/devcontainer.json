@@ -11,7 +11,6 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-vscode.vscode-typescript-next",
         "esbenp.prettier-vscode",
         "ms-vscode.vscode-json",
         "ms-vscode.vscode-eslint",
@@ -21,7 +20,8 @@
         "GitHub.copilot-chat",
         "ms-playwright.playwright",
         "christian-kohler.path-intellisense",
-        "formulahendry.auto-rename-tag"
+        "formulahendry.auto-rename-tag",
+        "pucelle.vscode-css-navigation"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",

@@ -2,10 +2,10 @@ import { LitElement, html, css } from 'lit'
 import { customElement } from 'lit/decorators.js'
 import { authClient } from '../../lib/auth-client'
 import { Router } from '@vaadin/router'
-import { clearAuthState } from '../../store/auth-store'
+import { clearAuthState } from '../../store/auth'
+import { resetLoginFormState } from '../../store/login-form'
 
-// Import Shoelace components
-import '@shoelace-style/shoelace/dist/components/button/button.js'
+import '../shoelace-wrappers/sl-button-fancy.ts'
 
 @customElement('logout-component')
 export class LogoutComponent extends LitElement {
@@ -63,6 +63,8 @@ export class LogoutComponent extends LitElement {
       await authClient.signOut()
       // Clear the auth state
       clearAuthState()
+      // Reset the login form so any previous submitting state is cleared
+      resetLoginFormState()
       Router.go('/login')
     } catch (error) {
       console.error('Logout failed:', error)
@@ -71,10 +73,10 @@ export class LogoutComponent extends LitElement {
 
   render() {
     return html`
-      <sl-button id="logout-button" variant="primary" @click=${this.handleLogout}>
+      <sl-button-fancy id="logout-button" variant="warning" @click=${this.handleLogout}>
         <ph-sign-out slot="prefix"></ph-sign-out>
         Logout
-      </sl-button>
+      </sl-button-fancy>
     `
   }
 }

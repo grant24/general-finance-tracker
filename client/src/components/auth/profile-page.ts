@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit'
 import { customElement } from 'lit/decorators.js'
 import { Router } from '@vaadin/router'
 import { StoreController } from '@nanostores/lit'
-import { authState } from '../../store/auth-store'
+import { authState } from '../../store/auth'
 import './profile-query'
 import './logout-component'
 

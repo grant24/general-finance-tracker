@@ -15,10 +15,11 @@ export class AuthButtons extends LitElement {
       display: flex;
       gap: 0.75rem;
       align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      width: auto;
       padding: 0.5rem;
       border-radius: 0.5rem;
-      background: linear-gradient(135deg, rgba(67, 179, 174, 0.02), rgba(205, 127, 50, 0.02));
-      backdrop-filter: blur(1px);
     }
 
     /* Icon styling */
