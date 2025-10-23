@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import { updateUserField, getUpdateState } from '../../store/user-update'
+import { updateUserField, getUpdateState } from '../../store/user'
 import './saved-icon-effect'
 
 // Import Shoelace components

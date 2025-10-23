@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, state } from 'lit/decorators.js'
 import { Router } from '@vaadin/router'
-import { signUp } from '../../store/auth'
+import { signUp } from '../../store/user'
 
 // Import Shoelace components
 import '@shoelace-style/shoelace/dist/components/input/input.js'

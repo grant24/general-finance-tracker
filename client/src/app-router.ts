@@ -1,6 +1,6 @@
 import { Router } from '@vaadin/router'
 import { $authState, refreshAuthState } from './store/auth'
-import { resetLoginFormState } from './store/login-form'
+import { resetLoginFormState } from './store/user'
 
 import './components/auth/auth-management'
 import './components/auth/signup-component'

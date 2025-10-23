@@ -3,7 +3,7 @@ import { customElement } from 'lit/decorators.js'
 import { authClient } from '../../lib/auth-client'
 import { Router } from '@vaadin/router'
 import { clearAuthState } from '../../store/auth'
-import { resetLoginFormState } from '../../store/login-form'
+import { resetLoginFormState } from '../../store/user'
 
 import '../shoelace-wrappers/sl-button-fancy.ts'
 

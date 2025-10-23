@@ -35,7 +35,9 @@ if (typeof window !== 'undefined') {
   // If the user hasn't set a preference, initialize from system pref
   const userSet = $darkModeUserSet.get()
   if (!userSet) {
-    const systemPref = window.matchMedia('(prefers-color-scheme: dark)').matches
+    // matchMedia may be undefined in some test environments — guard it
+    const systemPref =
+      typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-color-scheme: dark)').matches : false
     $isDarkMode.set(systemPref)
   }
 
@@ -49,13 +51,15 @@ if (typeof window !== 'undefined') {
     document.documentElement.classList.remove('sl-theme-dark')
   }
 
-  // Listen for system preference changes
+  // Listen for system preference changes if supported.
   // Update only when user hasn't explicitly selected a preference.
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-  mediaQuery.addEventListener('change', (e) => {
-    const userSetNow = $darkModeUserSet.get()
-    if (!userSetNow) {
-      $isDarkMode.set(e.matches)
-    }
-  })
+  if (typeof window.matchMedia === 'function') {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    mediaQuery.addEventListener('change', (e) => {
+      const userSetNow = $darkModeUserSet.get()
+      if (!userSetNow) {
+        $isDarkMode.set(e.matches)
+      }
+    })
+  }
 }

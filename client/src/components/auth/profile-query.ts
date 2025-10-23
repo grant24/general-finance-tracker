@@ -1,16 +1,13 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
-import { fetchUserProfile, getUserProfileState, userProfiles } from '../../store/user-profile'
-import { StoreController } from '@nanostores/lit'
+import { fetchUserProfile, getUserProfileState, userProfileStore } from '../../store/user'
 
 @customElement('profile-query')
 export class ProfileQuery extends LitElement {
   @property()
   meId = ''
 
-  // Subscribe to the userProfiles store so the component re-renders when profile state changes
-  // prefixed with _ to indicate intentionally unused variable (it establishes the subscription)
-  private _profilesController = new StoreController(this, userProfiles)
+  private _unsub: (() => void) | null = null
 
   static styles = css`
     :host {
@@ -135,10 +132,17 @@ export class ProfileQuery extends LitElement {
 
   connectedCallback() {
     super.connectedCallback()
-    void this._profilesController
     if (this.meId) {
+      // ensure there's a store and subscribe to updates to trigger re-render
+      const s = userProfileStore(this.meId)
+      this._unsub = s.listen(() => this.requestUpdate()) as any
       fetchUserProfile(this.meId)
     }
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback()
+    if (this._unsub) this._unsub()
   }
 
   updated(changedProperties: Map<string, unknown>) {

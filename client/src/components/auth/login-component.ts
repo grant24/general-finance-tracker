@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit'
 import { customElement } from 'lit/decorators.js'
 import { Router } from '@vaadin/router'
 import { StoreController } from '@nanostores/lit'
-import { loginForm, setLoginEmail, setLoginPassword, toggleShowPassword, submitLogin } from '../../store/login-form.js'
+import { $loginForm, setLoginEmail, setLoginPassword, toggleShowPassword, submitLogin } from '../../store/user'
 
 // Import Shoelace components
 import '@shoelace-style/shoelace/dist/components/input/input.js'
@@ -11,7 +11,7 @@ import '@shoelace-style/shoelace/dist/components/checkbox/checkbox.js'
 
 @customElement('login-component')
 export class Login extends LitElement {
-  private loginController = new StoreController(this, loginForm)
+  private loginController = new StoreController(this, $loginForm)
 
   static styles = css`
     :host {
