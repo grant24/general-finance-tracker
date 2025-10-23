@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import { Router } from '@vaadin/router'
 import { StoreController } from '@nanostores/lit'
-import { isDarkMode } from '../store/theme'
+import { $isDarkMode } from '../store/theme'
 import { authState } from '../store/auth'
 import { getSession } from '../lib/auth-client'
 import '@shoelace-style/shoelace/dist/components/button/button.js'
@@ -16,7 +16,7 @@ export class NavLinks extends LitElement {
   onClick?: () => void
 
   private authStateController = new StoreController(this, authState)
-  private isDarkModeController = new StoreController(this, isDarkMode)
+  private isDarkModeController = new StoreController(this, $isDarkMode)
 
   @state()
   private currentPath = window.location.pathname

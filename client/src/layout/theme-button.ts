@@ -1,11 +1,11 @@
 import { LitElement, html, css } from 'lit'
 import { customElement } from 'lit/decorators.js'
-import { toggleDarkMode, isDarkMode } from '../store/theme'
+import { toggleDarkMode, $isDarkMode } from '../store/theme'
 import { StoreController } from '@nanostores/lit'
 
 @customElement('theme-button')
 export class ThemeButton extends LitElement {
-  private isDarkModeController = new StoreController(this, isDarkMode)
+  private isDarkModeController = new StoreController(this, $isDarkMode)
 
   static styles = css`
     :host {

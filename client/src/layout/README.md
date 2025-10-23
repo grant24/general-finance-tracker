@@ -20,8 +20,8 @@ The `nav-links` component has been converted from React to Lit HTML with the fol
 The component uses nanostore for theme state:
 
 ```typescript
-import { isDarkMode, toggleDarkMode } from '../store/use-theme-store'
-private themeController = new StoreController(this, isDarkMode)
+import { $isDarkMode, toggleDarkMode } from '../store/use-theme-store'
+private themeController = new StoreController(this, $isDarkMode)
 ```
 
 ### 2. Shoelace Integration

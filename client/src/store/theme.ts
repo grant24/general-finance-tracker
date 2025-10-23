@@ -1,38 +1,29 @@
-import { atom, computed } from 'nanostores'
+import { computed } from 'nanostores'
+import { persistentBoolean } from '@nanostores/persistent'
 
-// Initialize with system preference if available
-const getInitialTheme = (): boolean => {
-  if (typeof window === 'undefined') return false
+// Create a persistent boolean store for dark mode.
+// We can't call window during SSR so persistent is only used at runtime;
+// when undefined (SSR) the store defaults to false and the client will rehydrate on mount.
+export const $isDarkMode = persistentBoolean('darkMode', false)
 
-  // Check localStorage first
-  const stored = localStorage.getItem('darkMode')
-  if (stored !== null) {
-    return JSON.parse(stored)
-  }
-
-  // Fall back to system preference
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-}
-
-export const isDarkMode = atom<boolean>(getInitialTheme())
-
-export const toggleDarkMode = () => {
-  isDarkMode.set(!isDarkMode.get())
-}
+// Track whether the user explicitly set a preference.
+// This avoids inspecting localStorage directly and makes the intent explicit.
+export const $darkModeUserSet = persistentBoolean('darkMode:userSet', false)
 
 export const setDarkMode = (value: boolean) => {
-  isDarkMode.set(value)
+  $isDarkMode.set(value)
+  $darkModeUserSet.set(true)
 }
 
-export const themeClass = computed(isDarkMode, (dark) => (dark ? 'dark' : 'light'))
+export const toggleDarkMode = () => {
+  setDarkMode(!$isDarkMode.get())
+}
 
-// Apply theme changes and save to localStorage
+export const themeClass = computed($isDarkMode, (dark) => (dark ? 'dark' : 'light'))
+
+// Apply theme classes and listen for system changes in the browser
 if (typeof window !== 'undefined') {
-  // Save to localStorage whenever it changes
-  isDarkMode.subscribe((value) => {
-    localStorage.setItem('darkMode', JSON.stringify(value))
-
-    // Apply Shoelace theme classes
+  $isDarkMode.subscribe((value: boolean) => {
     if (value) {
       document.documentElement.classList.add('sl-theme-dark')
       document.documentElement.classList.remove('sl-theme-light')
@@ -42,8 +33,15 @@ if (typeof window !== 'undefined') {
     }
   })
 
-  // Apply initial theme
-  const currentValue = isDarkMode.get()
+  // If the user hasn't set a preference, initialize from system pref
+  const userSet = $darkModeUserSet.get()
+  if (!userSet) {
+    const systemPref = window.matchMedia('(prefers-color-scheme: dark)').matches
+    $isDarkMode.set(systemPref)
+  }
+
+  // Apply initial theme based on the store current value
+  const currentValue = $isDarkMode.get()
   if (currentValue) {
     document.documentElement.classList.add('sl-theme-dark')
     document.documentElement.classList.remove('sl-theme-light')
@@ -52,13 +50,13 @@ if (typeof window !== 'undefined') {
     document.documentElement.classList.remove('sl-theme-dark')
   }
 
-  // Listen for system theme changes
+  // Listen for system preference changes
+  // Update only when user hasn't explicitly selected a preference.
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
   mediaQuery.addEventListener('change', (e) => {
-    // Only update if user hasn't manually set a preference
-    const stored = localStorage.getItem('darkMode')
-    if (stored === null) {
-      isDarkMode.set(e.matches)
+    const userSetNow = $darkModeUserSet.get()
+    if (!userSetNow) {
+      $isDarkMode.set(e.matches)
     }
   })
 }

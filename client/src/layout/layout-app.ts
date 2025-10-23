@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, state, query } from 'lit/decorators.js'
 import { Router } from '@vaadin/router'
-import { isDarkMode } from '../store/theme'
+import { $isDarkMode } from '../store/theme'
 import { StoreController } from '@nanostores/lit'
 import '../auth/avatar-menu'
 import './nav-links'
@@ -12,7 +12,7 @@ import { AppRouter } from '../app-router'
 
 @customElement('layout-app')
 export class LayoutApp extends LitElement {
-  private isDarkModeController = new StoreController(this, isDarkMode)
+  private isDarkModeController = new StoreController(this, $isDarkMode)
 
   @state()
   private sidebarOpen = false
