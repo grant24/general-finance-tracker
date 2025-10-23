@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit'
 import { customElement } from 'lit/decorators.js'
 import { authClient } from '../../lib/auth-client'
-import { Router } from '@vaadin/router'
+import { navigate } from '../../store/navigation'
 import { clearAuthState } from '../../store/auth'
 import { resetLoginFormState } from '../../store/user'
 
@@ -65,7 +65,7 @@ export class LogoutComponent extends LitElement {
       clearAuthState()
       // Reset the login form so any previous submitting state is cleared
       resetLoginFormState()
-      Router.go('/login')
+      await navigate('/login')
     } catch (error) {
       console.error('Logout failed:', error)
     }

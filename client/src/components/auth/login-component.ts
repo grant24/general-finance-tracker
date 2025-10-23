@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement } from 'lit/decorators.js'
-import { Router } from '@vaadin/router'
+import { navigate } from '../../store/navigation'
 import { StoreController } from '@nanostores/lit'
 import { $loginForm, setLoginEmail, setLoginPassword, toggleShowPassword, submitLogin } from '../../store/user'
 
@@ -165,7 +165,7 @@ export class Login extends LitElement {
   }
 
   private handleSignupClick() {
-    Router.go('/signup')
+    navigate('/signup')
   }
 
   render() {

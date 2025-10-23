@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import { Router } from '@vaadin/router'
+import { navigate } from '../../store/navigation'
 import { trpcClient } from '../../lib/trpc'
 import '../../layout/img-avatar'
 
@@ -123,11 +123,11 @@ export class ChipUserId extends LitElement {
     }
   }
 
-  private handleRemoveFilter() {
+  private async handleRemoveFilter() {
     const url = new URL(window.location.href)
     const params = new URLSearchParams(url.search)
     params.delete('userId')
-    Router.go(`${window.location.pathname}?${params.toString()}`)
+    await navigate(`${window.location.pathname}?${params.toString()}`)
   }
 
   render() {

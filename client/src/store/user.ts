@@ -86,12 +86,12 @@ export const submitLogin = async () => {
 
       // reset login form state
       resetLoginFormState()
-      // Router is only available in browser; import dynamically to avoid SSR/node issues
+      // Navigate to dashboard using the navigation store. This avoids a direct
+      // dependency on Vaadin Router and is safe for SSR/node environments.
       if (typeof window !== 'undefined') {
-        const mod = await import('@vaadin/router')
-        // router.go is available as Router.go
         try {
-          mod.Router.go('/dashboard')
+          const nav = await import('./navigation')
+          await nav.navigate('/dashboard')
         } catch (e) {
           // ignore errors in environments without router
         }

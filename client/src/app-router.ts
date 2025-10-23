@@ -1,4 +1,5 @@
 import { Router } from '@vaadin/router'
+import { registerRouter } from './store/navigation'
 import { $authState, refreshAuthState } from './store/auth'
 import { resetLoginFormState } from './store/user'
 
@@ -20,6 +21,16 @@ export class AppRouter {
   constructor(outlet: HTMLElement) {
     this.outlet = outlet
     this.setupRouter()
+    // Register the underlying router with the navigation store so programmatic
+    // navigation uses router.go when available (preserves routing lifecycle).
+    try {
+      // Use the static Router.go to perform navigation so we avoid calling
+      // instance methods that may not exist on the Router type. This still
+      // delegates to Vaadin Router's global navigation and preserves hooks.
+      registerRouter({ go: (path: string) => Router.go(path) })
+    } catch (e) {
+      // ignore errors during SSR or test environments
+    }
   }
 
   // Authentication guard for protected routes

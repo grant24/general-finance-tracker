@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement } from 'lit/decorators.js'
-import { Router } from '@vaadin/router'
+import { navigate } from '../store/navigation'
 import { StoreController } from '@nanostores/lit'
 import { $authState } from '../store/auth'
 import '@phosphor-icons/webcomponents'
@@ -51,7 +51,7 @@ export class AvatarMenu extends LitElement {
   `
 
   private handleProfileClick() {
-    Router.go('/profile')
+    navigate('/profile')
   }
 
   render() {

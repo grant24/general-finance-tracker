@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, state, query } from 'lit/decorators.js'
-import { Router } from '@vaadin/router'
+import { navigate } from '../store/navigation'
 import { $isDarkMode } from '../store/theme'
 import { StoreController } from '@nanostores/lit'
 import '../auth/avatar-menu'
@@ -285,7 +285,7 @@ export class LayoutApp extends LitElement {
   }
 
   private handleLogoClick() {
-    Router.go('/')
+    navigate('/')
     this.closeSidebar()
   }
 

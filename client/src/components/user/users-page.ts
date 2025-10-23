@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, state } from 'lit/decorators.js'
-import { Router } from '@vaadin/router'
+// Router calls migrated to navigation store
+import { navigate } from '../../store/navigation'
 import { trpcClient } from '../../lib/trpc'
 import utils from '../../lib/utils'
 import './chip-user-id'
@@ -262,7 +263,7 @@ export class UsersPage extends LitElement {
           error.message.includes('UNAUTHORIZED'))
       ) {
         // Session expired or invalid, redirect to login
-        Router.go('/login')
+        await navigate('/login')
         return
       }
 
@@ -283,7 +284,7 @@ export class UsersPage extends LitElement {
     }
   }
 
-  private handleSearch() {
+  private async handleSearch() {
     const url = new URL(window.location.href)
     const params = new URLSearchParams(url.search)
 
@@ -293,7 +294,7 @@ export class UsersPage extends LitElement {
       params.delete('search')
     }
     params.delete('page') // Reset to first page when searching
-    Router.go(`${window.location.pathname}?${params.toString()}`)
+    await navigate(`${window.location.pathname}?${params.toString()}`)
   }
 
   private handleSearchKeyDown(e: KeyboardEvent) {
@@ -306,15 +307,15 @@ export class UsersPage extends LitElement {
     this.searchInput = (e.target as any).value
   }
 
-  private handleSessionsClick(userId: string) {
-    Router.go(`/sessions?userId=${userId}`)
+  private async handleSessionsClick(userId: string) {
+    await navigate(`/sessions?userId=${userId}`)
   }
 
-  private handlePageChange(newPage: number) {
+  private async handlePageChange(newPage: number) {
     const url = new URL(window.location.href)
     const params = new URLSearchParams(url.search)
     params.set('page', newPage.toString())
-    Router.go(`${window.location.pathname}?${params.toString()}`)
+    await navigate(`${window.location.pathname}?${params.toString()}`)
   }
 
   render() {

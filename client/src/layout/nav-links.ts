@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import { Router } from '@vaadin/router'
+import { navigate } from '../store/navigation'
 import { StoreController } from '@nanostores/lit'
 import { $isDarkMode } from '../store/theme'
 import { $authState } from '../store/auth'
@@ -134,7 +134,7 @@ export class NavLinks extends LitElement {
     this.currentPath = window.location.pathname
   }
 
-  private handleNavClick(path: string, isExternal = false) {
+  private async handleNavClick(path: string, isExternal = false) {
     if (this.onClick) {
       this.onClick()
     }
@@ -144,7 +144,7 @@ export class NavLinks extends LitElement {
       return
     }
 
-    Router.go(path)
+    await navigate(path)
   }
 
   private isActiveLink(path: string): boolean {

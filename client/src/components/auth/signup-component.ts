@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, state } from 'lit/decorators.js'
-import { Router } from '@vaadin/router'
+import { navigate } from '../../store/navigation'
 import { signUp } from '../../store/user'
 
 // Import Shoelace components
@@ -175,7 +175,7 @@ export class SignupComponent extends LitElement {
 
       if (signupResult.data) {
         // Session is now established by the helper, redirect to dashboard
-        Router.go('/dashboard')
+        await navigate('/dashboard')
       }
     } catch (error) {
       console.error('Signup error:', error)
@@ -203,7 +203,7 @@ export class SignupComponent extends LitElement {
       }
 
       if (signupResult.data) {
-        Router.go('/dashboard')
+        await navigate('/dashboard')
       }
     } catch (error) {
       console.error('Signup error:', error)
@@ -226,7 +226,7 @@ export class SignupComponent extends LitElement {
   }
 
   private handleLoginClick() {
-    Router.go('/login')
+    navigate('/login')
   }
 
   render() {

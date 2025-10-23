@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement } from 'lit/decorators.js'
-import { Router } from '@vaadin/router'
+import { navigate } from '../../store/navigation'
 import { StoreController } from '@nanostores/lit'
 import { $authState } from '../../store/auth'
 import './profile-query'
@@ -74,10 +74,10 @@ export class ProfilePage extends LitElement {
     }
   `
 
-  private handleSessionsClick() {
+  private async handleSessionsClick() {
     const currentAuth = this.authController.value
     if (currentAuth.user?.id) {
-      Router.go(`/sessions?userId=${currentAuth.user.id}`)
+      await navigate(`/sessions?userId=${currentAuth.user.id}`)
     }
   }
 

@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement } from 'lit/decorators.js'
-import { Router } from '@vaadin/router'
+import { navigate } from '../store/navigation'
 import '@phosphor-icons/webcomponents'
 import '../components/shoelace-wrappers/sl-button-fancy.js'
 
@@ -32,12 +32,12 @@ export class AuthButtons extends LitElement {
 
   private handleLogin(e: Event) {
     e.preventDefault()
-    Router.go('/login')
+    navigate('/login')
   }
 
   private handleSignup(e: Event) {
     e.preventDefault()
-    Router.go('/signup')
+    navigate('/signup')
   }
 
   render() {

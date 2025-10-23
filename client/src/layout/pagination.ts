@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
-import { Router } from '@vaadin/router'
+import { navigate } from '../store/navigation'
 
 @customElement('pagination-component')
 export class PaginationComponent extends LitElement {
@@ -118,15 +118,15 @@ export class PaginationComponent extends LitElement {
     return `${url.pathname}?${params.toString()}`
   }
 
-  private handlePreviousPage() {
+  private async handlePreviousPage() {
     if (this.page > 1) {
-      Router.go(this.getLinkPage(this.page - 1))
+      await navigate(this.getLinkPage(this.page - 1))
     }
   }
 
-  private handleNextPage() {
+  private async handleNextPage() {
     if (!this.isLastPage) {
-      Router.go(this.getLinkPage(this.page + 1))
+      await navigate(this.getLinkPage(this.page + 1))
     }
   }
 

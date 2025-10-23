@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, state } from 'lit/decorators.js'
-import { Router } from '@vaadin/router'
+// Router calls migrated to navigation store
+import { navigate } from '../../store/navigation'
 import utils from '../../lib/utils'
 import $sessions, { initializeFromUrl, loadSessions, setPage, removeUserFilter } from '../../store/sessions'
 import './device-image'
@@ -260,26 +261,26 @@ export class SessionsPage extends LitElement {
     ;(async () => await loadSessions())()
   }
 
-  private handleUserClick(userId: string) {
-    Router.go(`/users?userId=${userId}`)
+  private async handleUserClick(userId: string) {
+    await navigate(`/users?userId=${userId}`)
   }
 
-  private handleRemoveUserFilter() {
+  private async handleRemoveUserFilter() {
     // update store and navigate
     removeUserFilter()
     const url = new URL(window.location.href)
     const params = new URLSearchParams(url.search)
     params.delete('userId')
-    Router.go(`${window.location.pathname}?${params.toString()}`)
+    await navigate(`${window.location.pathname}?${params.toString()}`)
   }
 
-  private handlePageChange(newPage: number) {
+  private async handlePageChange(newPage: number) {
     // update store and navigate
     setPage(newPage)
     const url = new URL(window.location.href)
     const params = new URLSearchParams(url.search)
     params.set('page', newPage.toString())
-    Router.go(`${window.location.pathname}?${params.toString()}`)
+    await navigate(`${window.location.pathname}?${params.toString()}`)
   }
 
   render() {
