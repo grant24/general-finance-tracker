@@ -1,7 +1,28 @@
+/**
+ * Auth store
+ *
+ * Responsibilities:
+ * - Keep the current authenticated user and session state.
+ * - Provide derived helpers for authentication status and current user.
+ * - Offer functions to refresh and clear auth state from the server.
+ *
+ * Exports:
+ * - `$authState` atom: { user, session, isLoading, isAuthenticated }
+ * - `$isAuthenticated`, `$currentUser` derived stores
+ * - `refreshAuthState()`, `initializeAuth()` and simple mutators
+ *
+ * Notes:
+ * - Uses Immer-powered atoms (`@illuxiza/nanostores-immer`) so consumers
+ *   can rely on immutable updates via `.mut()`.
+ * - Safe to import in SSR; network calls are only executed by helpers.
+ */
 import { computed } from 'nanostores'
 import { atom } from '@illuxiza/nanostores-immer'
 import { authClient } from '../lib/auth-client'
 
+// -----------------------------
+// Types
+// -----------------------------
 interface User {
   id: string
   name?: string
@@ -17,7 +38,9 @@ interface AuthState {
   isAuthenticated: boolean
 }
 
-// Initialize auth state
+// -----------------------------
+// Stores
+// -----------------------------
 export const $authState = atom<AuthState>({
   user: null,
   session: null,
@@ -25,7 +48,9 @@ export const $authState = atom<AuthState>({
   isAuthenticated: false
 })
 
-// Helper functions to update auth state
+// -----------------------------
+// Helpers
+// -----------------------------
 export const setAuthLoading = (loading: boolean) => {
   $authState.mut((state) => {
     state.isLoading = loading
@@ -50,7 +75,6 @@ export const clearAuthState = () => {
   })
 }
 
-// Function to refresh auth state from server
 export const refreshAuthState = async () => {
   try {
     setAuthLoading(true)
@@ -67,13 +91,12 @@ export const refreshAuthState = async () => {
   }
 }
 
-// Computed store for authentication status
+// -----------------------------
+// Derived stores / exports
+// -----------------------------
 export const $isAuthenticated = computed($authState, (state) => state.isAuthenticated)
-
-// Computed store for current user
 export const $currentUser = computed($authState, (state) => state.user)
 
-// Initialize auth state on app start
 export const initializeAuth = async () => {
   await refreshAuthState()
 }

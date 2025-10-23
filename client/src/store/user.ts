@@ -1,12 +1,30 @@
-import { map } from 'nanostores'
-import { atom as immerAtom } from '@illuxiza/nanostores-immer'
+/**
+ * User store
+ *
+ * Responsibilities:
+ * - Provide login form state and helpers (submit, reset) for the auth UI.
+ * - Offer profile fetching/caching helpers built on `nanoquery` and TRPC.
+ * - Manage per-field update states (optimistic updates, errors, transient success flags).
+ *
+ * Exports (high level):
+ * - `$loginForm`, `submitLogin()`, `resetLoginFormState()`
+ * - Profile helpers: `userProfileStore()`, `fetchUserProfile()`, `setProfileCache()`
+ * - Update helpers: `$userUpdates`, `updateUserField()`, `clearUserUpdates()`
+ *
+ * Notes:
+ * - Uses Immer `atom` for update stores and nanoquery for fetcher caches.
+ * - Designed to be safe to import in SSR; network calls happen inside helpers.
+ */
+import { atom } from '@illuxiza/nanostores-immer'
 import { authClient } from '../lib/auth-client'
 import { refreshAuthState } from './auth'
 import { trpcClient } from '../lib/trpc'
 import { tryCatch } from '../lib/try-catch'
 import { nanoquery } from '@nanostores/query'
-// RouterOutput types available via ../lib/trpc if stronger typing is desired
 
+// -----------------------------
+// Types
+// -----------------------------
 interface LoginFormState {
   email: string
   password: string
@@ -15,7 +33,33 @@ interface LoginFormState {
   error: string | null
 }
 
-export const $loginForm = immerAtom<LoginFormState>({
+export interface ProfileState {
+  data: UserProfile | null
+  isLoading: boolean
+  error: string | null
+  lastFetched: number | null
+  fetchToken?: number
+}
+
+export type UserProfile = Record<string, unknown> & { id?: string; name?: string; email?: string }
+
+interface ProfileStore {
+  get: () => any
+  listen: (cb: () => void) => any
+  fetch: () => Promise<any>
+  mutate: (data: any) => void
+}
+
+interface UpdateState {
+  isUpdating: boolean
+  error: string | null
+  showSuccess: boolean
+}
+
+// -----------------------------
+// Login form store & helpers
+// -----------------------------
+export const $loginForm = atom<LoginFormState>({
   email: '',
   password: '',
   showPassword: false,
@@ -81,19 +125,17 @@ export const submitLogin = async () => {
     }
 
     if (res.data) {
-      // Refresh the shared auth store so components (avatar, nav, etc.) update immediately
+      // Update shared auth state so UI reacts immediately
       await refreshAuthState()
 
-      // reset login form state
       resetLoginFormState()
-      // Navigate to dashboard using the navigation store. This avoids a direct
-      // dependency on Vaadin Router and is safe for SSR/node environments.
+
       if (typeof window !== 'undefined') {
         try {
           const nav = await import('./navigation')
           await nav.navigate('/dashboard')
         } catch (e) {
-          // ignore errors in environments without router
+          // ignore in non-browser environments
         }
       }
     }
@@ -121,38 +163,16 @@ export const signUp = async (opts: { name?: string; email: string; password: str
   }
 }
 
-export interface ProfileState {
-  data: UserProfile | null
-  isLoading: boolean
-  error: string | null
-  lastFetched: number | null
-  fetchToken?: number
-}
-
-// Use nanoquery for profile fetching/caching/mutation
+// -----------------------------
+// Profile query/cache utilities
+// -----------------------------
 const [createFetcherStore, , queryHelpers] = nanoquery()
 
-// Simple user profile shape. Keep loose to avoid coupling to server types here,
-// but provide a named alias so other code can refine later.
-export type UserProfile = Record<string, unknown> & { id?: string; name?: string; email?: string }
-
-// Minimal interface for the nanoquery fetcher store we use. We only need get, listen,
-// fetch, mutate methods here.
-interface ProfileStore {
-  get: () => any
-  listen: (cb: () => void) => any
-  fetch: () => Promise<any>
-  mutate: (data: any) => void
-}
-
-// Cache created fetcher stores per userId
 const profileQueryStores = new Map<string, ProfileStore>()
 
 const createProfileQuery = (userId: string): ProfileStore => {
   const store = (createFetcherStore as any)(userId, {
-    // fetcher receives key parts; we only use the first arg as id
     fetcher: (id: string) => trpcClient.user.getUserProfile.query({ id: String(id) }),
-    // keep cache for 5 minutes
     cacheLifetime: 5 * 60 * 1000,
     dedupeTime: 4 * 1000
   }) as ProfileStore
@@ -221,13 +241,10 @@ export const fetchUserProfile = async (userId: string) => {
     profileQueryStores.set(userId, store)
   }
 
-  // Fetch current data (returns when data or error resolves)
   await store.fetch()
 }
 
-// Test helper: directly set profile cache for a userId (useful in unit tests)
 export const setProfileCache = (userId: string, data: any) => {
-  // Ensure a store exists and mutate it directly so listeners get the value
   let store = profileQueryStores.get(userId)
   if (!store) {
     store = createProfileQuery(userId)
@@ -235,12 +252,9 @@ export const setProfileCache = (userId: string, data: any) => {
   }
 
   if (store) store.mutate(data)
-
-  // Also mutate the shared cache to cover other key selectors
   queryHelpers.mutateCache(userId, data)
 }
 
-// Test helper: return the raw fetcher store value for a userId
 export const getProfileRaw = (userId: string) => {
   const store = profileQueryStores.get(userId)
   if (!store) return null
@@ -248,46 +262,38 @@ export const getProfileRaw = (userId: string) => {
 }
 
 export const updateUserProfile = async (userId: string, updates: Partial<any>) => {
-  // Ensure a query store exists
   let store = profileQueryStores.get(userId)
   if (!store) {
     store = createProfileQuery(userId)
     profileQueryStores.set(userId, store)
   }
 
-  // Optimistic update via store.mutate
+  // optimistic update
   store.mutate({ ...store.get()?.data, ...updates })
 
   const result = await tryCatch((trpcClient as any).user.updateUser.mutate({ id: userId, ...updates }))
 
   if (result.error) {
-    // On error, revalidate to restore server state
     queryHelpers.revalidateKeys(userId)
   } else {
-    // Update cache with server result and revalidate
     if (store) store.mutate(result.data)
     queryHelpers.invalidateKeys(userId)
   }
 }
 
 export const clearUserProfiles = () => {
-  // Invalidate all profile keys
   queryHelpers.invalidateKeys(() => true as any)
 }
 
-// --- User update states (moved from user-update.ts) ---
-interface UpdateState {
-  isUpdating: boolean
-  error: string | null
-  showSuccess: boolean
-}
-
-export const userUpdates = map<Record<string, UpdateState>>({})
+// -----------------------------
+// User update states
+// -----------------------------
+export const $userUpdates = atom<Record<string, UpdateState>>({})
 
 const getUpdateKey = (userId: string, field: string) => `${userId}-${field}`
 
 export const getUpdateState = (userId: string, field: string): UpdateState => {
-  const updates = userUpdates.get()
+  const updates = $userUpdates.get()
   const key = getUpdateKey(userId, field)
   return (
     updates[key] || {
@@ -302,11 +308,13 @@ export const updateUserField = async (userId: string, field: string, value: any)
   const key = getUpdateKey(userId, field)
   const current = getUpdateState(userId, field)
 
-  userUpdates.setKey(key, {
-    ...current,
-    isUpdating: true,
-    error: null,
-    showSuccess: false
+  $userUpdates.mut((draft) => {
+    draft[key] = {
+      ...current,
+      isUpdating: true,
+      error: null,
+      showSuccess: false
+    }
   })
 
   const updateData: any = { id: userId }
@@ -314,51 +322,44 @@ export const updateUserField = async (userId: string, field: string, value: any)
   const result = await tryCatch(trpcClient.user.updateUser.mutate(updateData))
 
   if (result.error) {
-    userUpdates.setKey(key, {
-      isUpdating: false,
-      error: result.error.message,
-      showSuccess: false
+    $userUpdates.mut((draft) => {
+      draft[key] = {
+        isUpdating: false,
+        error: result.error.message,
+        showSuccess: false
+      }
     })
-    // on error revalidate the profile
     queryHelpers.revalidateKeys(userId)
   } else {
-    userUpdates.setKey(key, {
-      isUpdating: false,
-      error: null,
-      showSuccess: true
+    $userUpdates.mut((draft) => {
+      draft[key] = {
+        isUpdating: false,
+        error: null,
+        showSuccess: true
+      }
     })
 
-    // apply server result to cache
     const store = profileQueryStores.get(userId)
     if (store) store.mutate(result.data)
 
     setTimeout(() => {
-      const currentAll = userUpdates.get()
-      if (currentAll[key]) {
-        userUpdates.setKey(key, {
-          ...currentAll[key],
-          showSuccess: false
-        })
-      }
+      $userUpdates.mut((draft) => {
+        if (draft[key]) draft[key].showSuccess = false
+      })
     }, 2000)
-    // Invalidate to let other listeners refresh
+
     queryHelpers.invalidateKeys(userId)
   }
 }
 
 export const clearUserUpdates = (userId: string) => {
-  const updates = userUpdates.get()
-  const newUpdates: Record<string, UpdateState> = {}
-
-  for (const [key, state] of Object.entries(updates)) {
-    if (!key.startsWith(`${userId}-`)) {
-      newUpdates[key] = state
+  $userUpdates.mut((draft) => {
+    for (const key of Object.keys(draft)) {
+      if (key.startsWith(`${userId}-`)) delete draft[key]
     }
-  }
-
-  userUpdates.set(newUpdates)
+  })
 }
 
 export const clearAllUserUpdates = () => {
-  userUpdates.set({})
+  $userUpdates.set({})
 }

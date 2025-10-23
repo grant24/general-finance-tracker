@@ -1,14 +1,31 @@
-import { atom } from 'nanostores'
+/**
+ * Navigation store
+ *
+ * Responsibilities:
+ * - Track the current client-side route/path.
+ * - Provide navigation helpers that prefer an injected router, then Vaadin Router,
+ *   and finally the History API as a fallback.
+ *
+ * Exports:
+ * - `$route` atom containing the current path string
+ * - `navigate()`, `replace()`, `back()`, and `registerRouter()` helpers
+ *
+ * Notes:
+ * - `$route` is an Immer atom to keep updates immutable via `.mut()`.
+ * - Safe to import in SSR; it guards window/history access.
+ */
+import { atom } from '@illuxiza/nanostores-immer'
 
-// Simple navigation store that keeps the current path and exposes helpers
-// to navigate, replace, and go back. It prefers an injected router (via
-// registerRouter) but falls back to the History API. The store is safe to
-// import in Node/SSR as it checks `typeof window` before accessing browser APIs.
-
+// -----------------------------
+// Stores
+// -----------------------------
 export const $route = atom<string>(
   typeof window !== 'undefined' ? window.location.pathname + window.location.search + window.location.hash : '/'
 )
 
+// -----------------------------
+// Internal helpers
+// -----------------------------
 let registeredRouter: { go?: (path: string) => void } | null = null
 
 function updateRouteFromLocation() {
@@ -16,12 +33,9 @@ function updateRouteFromLocation() {
   $route.set(window.location.pathname + window.location.search + window.location.hash)
 }
 
-// Hook into popstate and history mutations so $route stays up-to-date.
 if (typeof window !== 'undefined') {
-  // popstate for back/forward
   window.addEventListener('popstate', updateRouteFromLocation)
 
-  // wrap pushState/replaceState so programmatic navigation updates the store
   const origPush = history.pushState
   const origReplace = history.replaceState
 
@@ -38,6 +52,9 @@ if (typeof window !== 'undefined') {
   }
 }
 
+// -----------------------------
+// Public API
+// -----------------------------
 export function registerRouter(router: { go?: (path: string) => void }) {
   registeredRouter = router
 }
@@ -45,7 +62,6 @@ export function registerRouter(router: { go?: (path: string) => void }) {
 export async function navigate(path: string, opts?: { replace?: boolean }) {
   if (typeof window === 'undefined') return
 
-  // If a router was registered, prefer that so router lifecycle hooks run
   if (registeredRouter && typeof registeredRouter.go === 'function') {
     try {
       registeredRouter.go(path)
@@ -55,7 +71,6 @@ export async function navigate(path: string, opts?: { replace?: boolean }) {
     }
   }
 
-  // Try to use Vaadin Router if it's available via dynamic import
   try {
     const mod = await import('@vaadin/router')
     if (mod && mod.Router && typeof mod.Router.go === 'function') {
@@ -70,7 +85,6 @@ export async function navigate(path: string, opts?: { replace?: boolean }) {
     // ignore import errors and fall back to history
   }
 
-  // Fallback: use History API
   if (opts && opts.replace) {
     history.replaceState(null, '', path)
   } else {

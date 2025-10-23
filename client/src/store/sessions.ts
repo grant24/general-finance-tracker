@@ -1,9 +1,27 @@
+/**
+ * Sessions store
+ *
+ * Responsibilities:
+ * - Maintain paginated session lists and related UI state (loading, error, page, search, userId).
+ * - Coordinate with a nanoquery fetcher cache for data fetching and caching.
+ *
+ * Exports:
+ * - `$sessions` atom: sessions list and UI state
+ * - `loadSessions()`, setters for page/search/userId, and query helper access
+ *
+ * Notes:
+ * - Uses Immer `atom` for immutable updates via `.mut()`.
+ * - Works with nanoquery fetcher stores; tests may need to clear queries via `clearSessionsQueries()`.
+ */
 import { atom } from '@illuxiza/nanostores-immer'
 import { tryCatch } from '../lib/try-catch'
 import { trpcClient } from '../lib/trpc'
 import utils from '../lib/utils'
 import { nanoquery } from '@nanostores/query'
 
+// -----------------------------
+// Types
+// -----------------------------
 export interface Session {
   id: string
   createdAt: string
@@ -33,6 +51,9 @@ interface SessionsStoreState {
   userId?: string
 }
 
+// -----------------------------
+// Store
+// -----------------------------
 const $sessions = atom<SessionsStoreState>({
   sessions: null,
   isLoading: true,
@@ -54,13 +75,13 @@ export const initializeFromUrl = () => {
     s.userId = params.get('userId') || undefined
   })
 }
-// Use nanoquery to create fetcher stores and shared cache helpers
-const [createFetcherStore, , queryHelpers] = nanoquery()
 
-// Export queryHelpers so tests can spy on invalidate/revalidate without mocking
+// -----------------------------
+// Query fetcher helpers
+// -----------------------------
+const [createFetcherStore, , queryHelpers] = nanoquery()
 export const sessionsQueryHelpers = queryHelpers
 
-// Keyed fetcher store type
 type SessionsFetcher = {
   get: () => any
   listen: (cb: () => void) => any
@@ -83,7 +104,6 @@ const createSessionsQuery = (page: number, search?: string, userId?: string) => 
   return store
 }
 
-// ensure a query store exists for current state
 const ensureCurrentStore = (state: SessionsStoreState) => {
   const key = makeKey(state.page, state.search, state.userId)
   let store = sessionsQueryStores.get(key)
@@ -94,7 +114,6 @@ const ensureCurrentStore = (state: SessionsStoreState) => {
   return store
 }
 
-// Test / debug helper: clear internal query stores and shared cache
 export const clearSessionsQueries = () => {
   sessionsQueryStores.clear()
   try {
@@ -104,12 +123,10 @@ export const clearSessionsQueries = () => {
   }
 }
 
-// Sync helper: read from query store and update the atom
 const syncFromQueryStore = (state: SessionsStoreState) => {
   const store = ensureCurrentStore(state)
   const raw = store.get()
 
-  // raw may be { data, loading, error } or direct data depending on implementation
   let data: any = undefined
   let loading = false
   let error: string | null = null
@@ -118,7 +135,6 @@ const syncFromQueryStore = (state: SessionsStoreState) => {
     if ('data' in raw) {
       data = raw.data
     } else if ('loading' in raw || 'error' in raw) {
-      // it's a transient loading/error-only shape; do not overwrite existing sessions
       loading = !!raw.loading
       if (raw.error) {
         error = raw.error instanceof Error ? raw.error.message : String(raw.error)
@@ -127,7 +143,6 @@ const syncFromQueryStore = (state: SessionsStoreState) => {
       }
       data = undefined
     } else {
-      // raw is likely the direct data
       data = raw
     }
   } else {
@@ -135,7 +150,6 @@ const syncFromQueryStore = (state: SessionsStoreState) => {
   }
 
   $sessions.mut((s) => {
-    // only overwrite sessions if we have explicit data
     if (typeof data !== 'undefined') {
       s.sessions = (data as SessionsResponse) ?? null
     }
@@ -144,12 +158,10 @@ const syncFromQueryStore = (state: SessionsStoreState) => {
   })
 }
 
-// Public function to trigger a fetch for current params
 export const loadSessions = async () => {
   const state = $sessions.get()
   const store = ensureCurrentStore(state)
 
-  // mark loading immediately
   $sessions.mut((s) => {
     s.isLoading = true
     s.error = null
@@ -158,21 +170,18 @@ export const loadSessions = async () => {
   try {
     const result = await store.fetch()
 
-    // Let the query store update state first
     syncFromQueryStore(state)
 
-    // Unwrap common wrapper shapes returned by some fetchers (e.g. { data: ... })
     const unwrapped = result && typeof result === 'object' && 'data' in result ? result.data : result
 
     if (unwrapped && typeof unwrapped === 'object') {
-      // only write sessions if the unwrapped result looks like SessionsResponse
       if ('sessions' in unwrapped && 'limit' in unwrapped) {
         $sessions.mut((s) => {
           s.sessions = unwrapped as SessionsResponse
         })
       }
     }
-    // If the fetcher returned a wrapper with an error field, record it
+
     if (result && typeof result === 'object' && 'error' in result && result.error) {
       const message = result.error instanceof Error ? result.error.message : String(result.error)
       $sessions.mut((s) => {
@@ -223,14 +232,11 @@ export const deleteSession = async (sessionId: string) => {
   const result = await tryCatch(trpcClient.session.deleteSession.mutate({ sessionId }))
 
   if (result.data) {
-    // After deleting a session, revalidate current query and invalidate others if needed
     const state = $sessions.get()
     const key = makeKey(state.page, state.search, state.userId)
 
-    // invalidate cache for the current key so next fetch will re-query
     queryHelpers.invalidateKeys((k: string) => k === key)
 
-    // Also trigger a fetch for current params to update the UI
     await loadSessions()
   }
 
