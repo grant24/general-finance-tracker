@@ -1,13 +1,12 @@
 import { computed } from 'nanostores'
 import { persistentBoolean } from '@nanostores/persistent'
 
-// Create a persistent boolean store for dark mode.
+// Create a persistent boolean store for dark mode
 // We can't call window during SSR so persistent is only used at runtime;
-// when undefined (SSR) the store defaults to false and the client will rehydrate on mount.
+// when undefined (SSR) the store defaults to false and the client will rehydrate on mount
 export const $isDarkMode = persistentBoolean('darkMode', false)
 
-// Track whether the user explicitly set a preference.
-// This avoids inspecting localStorage directly and makes the intent explicit.
+// Track whether the user explicitly set a preference
 export const $darkModeUserSet = persistentBoolean('darkMode:userSet', false)
 
 export const setDarkMode = (value: boolean) => {

@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js'
 import { Router } from '@vaadin/router'
 import { StoreController } from '@nanostores/lit'
 import { $isDarkMode } from '../store/theme'
-import { authState } from '../store/auth'
+import { $authState } from '../store/auth'
 import { getSession } from '../lib/auth-client'
 import '@shoelace-style/shoelace/dist/components/button/button.js'
 import '@shoelace-style/shoelace/dist/components/icon/icon.js'
@@ -15,7 +15,7 @@ export class NavLinks extends LitElement {
   @property({ attribute: false })
   onClick?: () => void
 
-  private authStateController = new StoreController(this, authState)
+  private authStateController = new StoreController(this, $authState)
   private isDarkModeController = new StoreController(this, $isDarkMode)
 
   @state()

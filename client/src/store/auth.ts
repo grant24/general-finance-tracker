@@ -1,4 +1,5 @@
-import { atom, computed } from 'nanostores'
+import { computed } from 'nanostores'
+import { atom } from '@illuxiza/nanostores-immer'
 import { authClient } from '../lib/auth-client'
 
 interface User {
@@ -17,7 +18,7 @@ interface AuthState {
 }
 
 // Initialize auth state
-export const authState = atom<AuthState>({
+export const $authState = atom<AuthState>({
   user: null,
   session: null,
   isLoading: true,
@@ -26,27 +27,26 @@ export const authState = atom<AuthState>({
 
 // Helper functions to update auth state
 export const setAuthLoading = (loading: boolean) => {
-  authState.set({
-    ...authState.get(),
-    isLoading: loading
+  $authState.mut((state) => {
+    state.isLoading = loading
   })
 }
 
 export const setAuthState = (user: User | null, session: any | null) => {
-  authState.set({
-    user,
-    session,
-    isLoading: false,
-    isAuthenticated: !!user && !!session
+  $authState.mut((state) => {
+    state.user = user
+    state.session = session
+    state.isLoading = false
+    state.isAuthenticated = !!user && !!session
   })
 }
 
 export const clearAuthState = () => {
-  authState.set({
-    user: null,
-    session: null,
-    isLoading: false,
-    isAuthenticated: false
+  $authState.mut((state) => {
+    state.user = null
+    state.session = null
+    state.isLoading = false
+    state.isAuthenticated = false
   })
 }
 
@@ -94,10 +94,10 @@ export const signUp = async (opts: { name?: string; email: string; password: str
 }
 
 // Computed store for authentication status
-export const isAuthenticated = computed(authState, (state) => state.isAuthenticated)
+export const $isAuthenticated = computed($authState, (state) => state.isAuthenticated)
 
 // Computed store for current user
-export const currentUser = computed(authState, (state) => state.user)
+export const $currentUser = computed($authState, (state) => state.user)
 
 // Initialize auth state on app start
 export const initializeAuth = async () => {

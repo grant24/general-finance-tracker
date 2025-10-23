@@ -2,14 +2,14 @@ import { LitElement, html, css } from 'lit'
 import { customElement } from 'lit/decorators.js'
 import { Router } from '@vaadin/router'
 import { StoreController } from '@nanostores/lit'
-import { authState } from '../store/auth'
+import { $authState } from '../store/auth'
 import '@phosphor-icons/webcomponents'
 import '../layout/img-avatar.js'
 import './auth-buttons.js'
 
 @customElement('avatar-menu')
 export class AvatarMenu extends LitElement {
-  private authStateController = new StoreController(this, authState)
+  private authStateController = new StoreController(this, $authState)
 
   static styles = css`
     :host {

@@ -1,5 +1,5 @@
 import { Router } from '@vaadin/router'
-import { authState, refreshAuthState } from './store/auth'
+import { $authState, refreshAuthState } from './store/auth'
 import { resetLoginFormState } from './store/login-form'
 
 import './components/auth/auth-management'
@@ -31,12 +31,12 @@ export class AppRouter {
       context.element = loadingElement
 
       // Check current auth state first
-      const currentAuthState = authState.get()
+      const currentAuthState = $authState.get()
 
       // If we don't have auth state or it's loading, refresh from server
       if (!currentAuthState.isAuthenticated || currentAuthState.isLoading) {
         await refreshAuthState()
-        const updatedAuthState = authState.get()
+        const updatedAuthState = $authState.get()
 
         if (!updatedAuthState.isAuthenticated) {
           // User is not authenticated, redirect to login
@@ -63,12 +63,12 @@ export class AppRouter {
       context.element = loadingElement
 
       // Check current auth state first
-      const currentAuthState = authState.get()
+      const currentAuthState = $authState.get()
 
       // If we don't have auth state or it's loading, refresh from server
       if (!currentAuthState.isAuthenticated || currentAuthState.isLoading) {
         await refreshAuthState()
-        const updatedAuthState = authState.get()
+        const updatedAuthState = $authState.get()
 
         if (!updatedAuthState.isAuthenticated) {
           // User is not authenticated, redirect to login
@@ -77,7 +77,7 @@ export class AppRouter {
       }
 
       // Check if user has admin role
-      const authStateAfterRefresh = authState.get()
+      const authStateAfterRefresh = $authState.get()
       if (authStateAfterRefresh.user?.role !== 'admin') {
         // User is not an admin, show error
         const errorElement = document.createElement('private-route-error')
