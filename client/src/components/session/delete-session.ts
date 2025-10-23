@@ -1,7 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import { trpcClient } from '../../lib/trpc'
-import { tryCatch } from '../../lib/try-catch'
+import { deleteSession } from '../../store/sessions'
 
 // Import Shoelace components
 import '@shoelace-style/shoelace/dist/components/button/button.js'
@@ -86,13 +85,13 @@ export class DeleteSession extends LitElement {
     this.isDeleting = true
     this.error = null
 
-    const result = await tryCatch(trpcClient.session.deleteSession.mutate({ sessionId: this.sessionId }))
+    const result = await deleteSession(this.sessionId)
 
-    if (result.error) {
+    if (result?.error) {
       this.error = result.error.message
     }
 
-    if (result.data && this.onDelete) {
+    if (result?.data && this.onDelete) {
       this.onDelete()
     }
 

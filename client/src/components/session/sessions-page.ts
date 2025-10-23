@@ -1,8 +1,8 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, state } from 'lit/decorators.js'
 import { Router } from '@vaadin/router'
-import { trpcClient } from '../../lib/trpc'
 import utils from '../../lib/utils'
+import $sessions, { initializeFromUrl, loadSessions, setPage, removeUserFilter } from '../../store/sessions'
 import './device-image'
 import './delete-session'
 import '../../layout/img-avatar'
@@ -35,6 +35,7 @@ interface SessionsResponse {
 
 @customElement('sessions-page')
 export class SessionsPage extends LitElement {
+  private sessionsState = $sessions
   @state()
   private sessions: SessionsResponse | null = null
 
@@ -45,13 +46,9 @@ export class SessionsPage extends LitElement {
   private error: string | null = null
 
   @state()
-  private currentPage = 1
-
-  @state()
-  private search?: string
-
-  @state()
   private userId?: string
+
+  // component derives pagination/search from `this.sessions` and store updatesadd sma
 
   static styles = css`
     :host {
@@ -242,52 +239,25 @@ export class SessionsPage extends LitElement {
 
   connectedCallback() {
     super.connectedCallback()
-    this.parseUrlParams()
-    this.loadSessions()
+    // initialize store from URL and subscribe to updates
+    initializeFromUrl()
+    ;(async () => await loadSessions())()
+
+    // subscribe nanostore changes to component state
+    this.sessionsState.listen(() => {
+      const s = this.sessionsState.get()
+      this.sessions = s.sessions
+      this.isLoading = s.isLoading
+      this.error = s.error
+      this.userId = s.userId
+      this.requestUpdate()
+    })
   }
 
-  private parseUrlParams() {
-    const url = new URL(window.location.href)
-    const params = new URLSearchParams(url.search)
-
-    this.currentPage = utils.sanitizePage(params.get('page'))
-    this.search = params.get('search') || undefined
-    this.userId = params.get('userId') || undefined
-  }
-
-  private async loadSessions() {
-    this.isLoading = true
-    this.error = null
-
-    try {
-      const result = await trpcClient.session.getSessions.query({
-        page: this.currentPage,
-        search: this.search,
-        userId: this.userId
-      })
-
-      this.sessions = result
-    } catch (error) {
-      // Check if it's an authentication error
-      if (
-        error instanceof Error &&
-        (error.message.includes('unauthorized') ||
-          error.message.includes('authentication') ||
-          error.message.includes('UNAUTHORIZED'))
-      ) {
-        // Session expired or invalid, redirect to login
-        Router.go('/login')
-        return
-      }
-
-      this.error = error instanceof Error ? error.message : 'Failed to load sessions'
-    } finally {
-      this.isLoading = false
-    }
-  }
+  // store handles loading; component subscribes in connectedCallback
 
   private handleDeleteSession = () => {
-    this.loadSessions()
+    ;(async () => await loadSessions())()
   }
 
   private handleUserClick(userId: string) {
@@ -295,6 +265,8 @@ export class SessionsPage extends LitElement {
   }
 
   private handleRemoveUserFilter() {
+    // update store and navigate
+    removeUserFilter()
     const url = new URL(window.location.href)
     const params = new URLSearchParams(url.search)
     params.delete('userId')
@@ -302,6 +274,8 @@ export class SessionsPage extends LitElement {
   }
 
   private handlePageChange(newPage: number) {
+    // update store and navigate
+    setPage(newPage)
     const url = new URL(window.location.href)
     const params = new URLSearchParams(url.search)
     params.set('page', newPage.toString())

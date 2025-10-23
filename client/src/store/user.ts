@@ -1,6 +1,7 @@
 import { map } from 'nanostores'
 import { atom as immerAtom } from '@illuxiza/nanostores-immer'
 import { authClient } from '../lib/auth-client'
+import { refreshAuthState } from './auth'
 import { trpcClient } from '../lib/trpc'
 import { tryCatch } from '../lib/try-catch'
 import { nanoquery } from '@nanostores/query'
@@ -80,7 +81,10 @@ export const submitLogin = async () => {
     }
 
     if (res.data) {
-      // let auth store refresh session
+      // Refresh the shared auth store so components (avatar, nav, etc.) update immediately
+      await refreshAuthState()
+
+      // reset login form state
       resetLoginFormState()
       // Router is only available in browser; import dynamically to avoid SSR/node issues
       if (typeof window !== 'undefined') {
@@ -118,7 +122,7 @@ export const signUp = async (opts: { name?: string; email: string; password: str
 }
 
 export interface ProfileState {
-  data: any | null
+  data: UserProfile | null
   isLoading: boolean
   error: string | null
   lastFetched: number | null
@@ -128,17 +132,30 @@ export interface ProfileState {
 // Use nanoquery for profile fetching/caching/mutation
 const [createFetcherStore, , queryHelpers] = nanoquery()
 
-// Cache created fetcher stores per userId (loose type to avoid complex generic constraints)
-const profileQueryStores = new Map<string, any>()
+// Simple user profile shape. Keep loose to avoid coupling to server types here,
+// but provide a named alias so other code can refine later.
+export type UserProfile = Record<string, unknown> & { id?: string; name?: string; email?: string }
 
-const createProfileQuery = (userId: string) => {
+// Minimal interface for the nanoquery fetcher store we use. We only need get, listen,
+// fetch, mutate methods here.
+interface ProfileStore {
+  get: () => any
+  listen: (cb: () => void) => any
+  fetch: () => Promise<any>
+  mutate: (data: any) => void
+}
+
+// Cache created fetcher stores per userId
+const profileQueryStores = new Map<string, ProfileStore>()
+
+const createProfileQuery = (userId: string): ProfileStore => {
   const store = (createFetcherStore as any)(userId, {
     // fetcher receives key parts; we only use the first arg as id
     fetcher: (id: string) => trpcClient.user.getUserProfile.query({ id: String(id) }),
     // keep cache for 5 minutes
     cacheLifetime: 5 * 60 * 1000,
     dedupeTime: 4 * 1000
-  })
+  }) as ProfileStore
 
   return store
 }
@@ -156,7 +173,7 @@ export const getUserProfileState = (userId: string): ProfileState => {
   }
 
   const val = store.get()
-  const data = val && typeof val === 'object' && 'data' in val ? val.data : val
+  const data = val && typeof val === 'object' && 'data' in val ? (val.data as UserProfile) : (val as UserProfile)
   const loading = val && typeof val === 'object' && 'loading' in val ? !!val.loading : false
   const error = val && typeof val === 'object' && 'error' in val ? (val.error ? String(val.error) : null) : null
 
@@ -179,9 +196,9 @@ export const userProfileStore = (userId: string) => {
   return {
     get: () => ({
       data:
-        ((): any => {
+        ((): UserProfile | null => {
           const v = store.get()
-          return v && typeof v === 'object' && 'data' in v ? v.data : v
+          return v && typeof v === 'object' && 'data' in v ? (v.data as UserProfile) : (v as UserProfile)
         })() ?? null,
       isLoading: ((): boolean => {
         const v = store.get()
